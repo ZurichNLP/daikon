@@ -34,6 +34,7 @@ class Vocabulary:
         words = vocab.read_words(filename)
         word_counts = Counter(words)
         sorted_words = [word for word, _ in word_counts.most_common() if word != C.UNK]
+        # TODO: do not hard-code the id of special symbols like that
         sorted_words = [C.PAD, C.EOS, C.UNK] + sorted_words
         if max_size:
             sorted_words = sorted_words[:max_size]

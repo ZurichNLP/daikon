@@ -48,9 +48,14 @@ def train(source_data: str, target_data: str, epochs: int, batch_size: int, voca
         for epoch in range(1, epochs + 1):
             total_loss = 0.0
             total_iter = 0
-            for x, y in reader.iterate(raw_data, batch_size, C.NUM_STEPS):
+            for x, y, z in reader.iterate(reader_ids, batch_size, shuffle=True):
+
+                feed_dict = {encoder_inputs: x,
+                             decoder_inputs: y,
+                             decoder_targets: z}
+
                 l, _, s = session.run([loss, train_step, summary],
-                                      feed_dict={inputs: x, targets: y})
+                                      feed_dict=feed_dict)
                 summary_writer.add_summary(s, total_iter)
                 total_loss += l
                 total_iter += 1

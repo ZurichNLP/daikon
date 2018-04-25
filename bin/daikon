@@ -17,8 +17,11 @@ def get_argument_parser():
     parser.add_argument('-q', '--quiet', action='store_true',
                         help='No logging output except for warnings and errors.')
     # train
-    train = subparsers.add_parser('train', help='Train a language model.')
-    train.add_argument('data', help='the training data, a plain text file.')
+    train = subparsers.add_parser('train', help='Train a machine translation model.')
+    train.add_argument('--source', type=str, required=True, dest='source_data',
+                       help='the source training data, a tokenized, plain text file.')
+    train.add_argument('--target', type=str, required=True, dest='target_data',
+                       help='the target training data, a tokenized, plain text file.')
     train.add_argument('-e', '--epochs', type=int, default=10,
                        help='the number of training epochs.')
     train.add_argument('-b', '--batch_size', type=int, default=20)
@@ -28,20 +31,14 @@ def get_argument_parser():
                        help='the folder to store model files.')
     train.add_argument('-l', '--log_to', default='logs',
                        help='the folder to store log files. Use for monitoring with tensorboard.')
-    # score
-    score = subparsers.add_parser('score', help='Use a trained model to score a text.')
-    score.add_argument('data', help='the data to be scored, a plain text file.')
-    score.add_argument('-m', '--load_from', default='model',
-                       help='the folder to load model and vocabulary files from.')
-    score.add_argument('-b', '--batch_size', type=int, default=1)
-    # sample
-    sample = subparsers.add_parser('sample', help='Use a trained model to generate a new text.')
-    sample.add_argument('length', type=int, default=100, help='the number of '
-                        'symbols to be sampled, i.e., the length of the resulting text.')
+
+    # translate
+    sample = subparsers.add_parser('translate', help='Use a trained model to translate new text.')
     sample.add_argument('-m', '--load_from', default='model',
                         help='the folder to load model and vocabulary files from.')
-    sample.add_argument('-f', '--first_symbol',
-                        help='the first symbol of the text to be generated.')
+    sample.add_argument('-i', '--input-file', type=str, required=False,
+                        help='Path to file that should be translated. If omitted, daikon '
+                        'assumes input from STDIN.')
 
     return parser
 
@@ -52,19 +49,17 @@ def action_train(args):
 
 
 def action_score(args):
+    # TODO
+    raise NotImplementedError
     from daikon.score import score
     perplexity = score(**vars(args))
     print('Perplexity: {0:.2f}'.format(perplexity))
 
 
-def action_sample(args):
-    from daikon.sample import sample
-    generated_text = sample(**vars(args))
-    print(generated_text)
-
-
-def action_generate(args):
-    pass
+def action_translate(args):
+    from daikon.translate import translate
+    translation = translate(**vars(args))
+    print(translation)
 
 
 def main():
@@ -80,8 +75,8 @@ def main():
         action_train(args)
     elif args.action == 'score':
         action_score(args)
-    elif args.action == 'sample':
-        action_sample(args)
+    elif args.action == 'translate':
+        action_translate(args)
 
 
 if __name__ == '__main__':

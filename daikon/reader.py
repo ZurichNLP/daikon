@@ -102,14 +102,10 @@ def iterate(reader_ids: ReaderTuple, batch_size: int, shuffle: bool = True):
     in batches of size `batch_size`.
 
     Args:
-        raw_data: the dataset (a list of numbers).
-        batch_size: the batch size
-        num_steps: number of time steps per example
+        TODO
 
     Yields:
-        an (x, y, z) tuple, with x corresponding to inputs and y to expected
-        outputs. y is x time shifted by one: y_0 = x_1, y_1 = x_2, etc. Both x
-        and y are NumPy arrays of shape (num_steps, batch_size).
+        TODO
 
     Example:
         >>> from daikon import reader
