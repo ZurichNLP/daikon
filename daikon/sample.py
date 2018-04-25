@@ -9,10 +9,10 @@ import tensorflow as tf
 
 from typing import List
 
-from romanesco.vocab import Vocabulary
-from romanesco.compgraph import define_computation_graph
+from daikon.vocab import Vocabulary
+from daikon.compgraph import define_computation_graph
 
-from romanesco import const as C
+from daikon import constants as C
 
 
 def softmax(x):

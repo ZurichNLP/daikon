@@ -16,6 +16,10 @@ UNK_ID = 2
 EOS = '<eos>'
 UNK = '<unk>'
 
+MODEL_FILENAME = 'model'
+SOURCE_VOCAB_FILENAME = 'vocab.source.json'
+TARGET_VOCAB_FILENAME = 'vocab.target.json'
+
 # max number of tokens per sequence
 MAX_LEN = 100
 SOURCE_VOCAB_SIZE = 10000

@@ -1,4 +1,9 @@
 #!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+
+# Authors:
+# Samuel Läubli <laeubli@cl.uzh.ch>
+# Mathias Müller <mmueller@cl.uzh.ch>
 
 import sys
 import logging
@@ -7,8 +12,8 @@ import argparse
 
 def get_argument_parser():
     parser = argparse.ArgumentParser()
-    subparsers = parser.add_subparsers(dest='action', help='A vanilla recurrent '
-                                       'neural network (RNN) language model')
+    subparsers = parser.add_subparsers(dest='action', help='A simple encoder-'
+                                       'decoder machine translation model')
     parser.add_argument('-q', '--quiet', action='store_true',
                         help='No logging output except for warnings and errors.')
     # train
@@ -42,18 +47,18 @@ def get_argument_parser():
 
 
 def action_train(args):
-    from romanesco.train import train
+    from daikon.train import train
     train(**vars(args))
 
 
 def action_score(args):
-    from romanesco.score import score
+    from daikon.score import score
     perplexity = score(**vars(args))
     print('Perplexity: {0:.2f}'.format(perplexity))
 
 
 def action_sample(args):
-    from romanesco.sample import sample
+    from daikon.sample import sample
     generated_text = sample(**vars(args))
     print(generated_text)
 

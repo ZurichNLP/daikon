@@ -6,12 +6,13 @@
 # Mathias Müller <mmueller@cl.uzh.ch>
 
 import json
+import os
 import random
 from typing import List
 from collections import Counter
 
-import constants as C
-from reader import read_words
+from daikon import constants as C
+from daikon.reader import read_words
 
 
 class Vocabulary:
@@ -74,3 +75,11 @@ class Vocabulary:
         """Writes this vocabulary to a file in JSON format."""
         with open(filepath, 'w') as f:
             json.dump(self._id, f, indent=4)
+
+
+def create_vocab(data: str, max_size: int, save_to: str):
+    vocab = Vocabulary()
+    vocab.build(data, max_size=max_size)
+    vocab.save(os.path.join(save_to, C.VOCAB_FILENAME))
+
+    return vocab
