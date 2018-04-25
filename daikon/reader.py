@@ -98,7 +98,7 @@ ReaderTuple = Tuple[NestedIds, NestedIds]
 
 
 def iterate(reader_ids: ReaderTuple, batch_size: int, shuffle: bool = True):
-    """Yields sequences of length `num_steps` for NMT training (or translation),
+    """Yields padded sequences for NMT training (or translation),
     in batches of size `batch_size`.
 
     Args:

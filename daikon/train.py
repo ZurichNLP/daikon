@@ -31,7 +31,7 @@ def train(source_data: str, target_data: str, epochs: int, batch_size: int, voca
     target_vocab = create_vocab(target_data, vocab_max_size, save_to, C.TARGET_VOCAB_FILENAME)
 
     # convert training data to list of word ids
-    reader_ids = reader.read_parallel(source_data, target_data, source_vocab, target_vocab, C.MAX_LEN)
+    reader_ids = list(reader.read_parallel(source_data, target_data, source_vocab, target_vocab, C.MAX_LEN))
 
     # define computation graph
     logging.info("Building computation graph.")
