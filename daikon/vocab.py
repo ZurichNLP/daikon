@@ -1,19 +1,24 @@
 #!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+
+# Authors:
+# Samuel Läubli <laeubli@cl.uzh.ch>
+# Mathias Müller <mmueller@cl.uzh.ch>
 
 import json
 import random
 from typing import List
 from collections import Counter
 
-from romanesco import const as C
-from romanesco.reader import read_words
+import constants as C
+from reader import read_words
 
 
 class Vocabulary:
 
     def __init__(self):
-        self._id = {} # {word: id}
-        self._word = {} # {id: word}
+        self._id = {}  # {word: id}
+        self._word = {}  # {id: word}
 
     def build(self, filename: str, max_size: int = None):
         """Builds a vocabulary mapping words (tokens) to ids (integers) and vice
@@ -46,14 +51,11 @@ class Vocabulary:
     def size(self):
         return len(self._id)
 
-    def get_id(self, word: str, strict: bool = False):
+    def get_id(self, word: str):
         try:
             return self._id[word]
         except KeyError:
-            if strict:
-                raise
-            else:
-                return self._id[C.UNK]
+            return self._id[C.UNK]
 
     def get_word(self, id: int):
         return self._word[id]

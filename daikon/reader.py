@@ -1,9 +1,14 @@
 #!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+
+# Authors:
+# Samuel Läubli <laeubli@cl.uzh.ch>
+# Mathias Müller <mmueller@cl.uzh.ch>
 
 import numpy as np
 import tensorflow as tf
 
-from romanesco import const as C
+from romanesco import const
 
 
 def read_words(filename: str):
@@ -17,7 +22,7 @@ def read_words(filename: str):
         indicated by <eos> (end of sentence).
     """
     with tf.gfile.GFile(filename) as f:
-        return f.read().replace("\n", " " + C.EOS + " ").split()
+        return f.read().replace("\n", " " + const.EOS + " ").split()
 
 
 def read(filename: str, vocab):
@@ -50,7 +55,7 @@ def iterate(raw_data, batch_size: int, num_steps: int):
 
     Example:
         >>> raw_data = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15]
-        >>> i = iterate(raw_data, batch_size=3, num_steps=2)
+        >>> i = iterator(raw_data, batch_size=3, num_steps=2)
         >>> batches = list(i)
         >>> len(batches)
         2
@@ -66,7 +71,7 @@ def iterate(raw_data, batch_size: int, num_steps: int):
     data_len = len(raw_data)
     num_batches = data_len // batch_size
 
-    data = raw_data[0 : batch_size * num_batches] # cut off
+    data = raw_data[0 : batch_size * num_batches]  # cut off
     data = np.reshape(data, [batch_size, num_batches])
 
     # raw_data = [the cat sits on the mat and eats a tasty little tuna fish .]
