@@ -6,25 +6,28 @@
 # Mathias Müller <mmueller@cl.uzh.ch>
 
 import tensorflow as tf
+
 from daikon import constants as C
 
 
 def define_computation_graph(source_vocab_size: int, target_vocab_size: int, batch_size: int):
 
+    tf.reset_default_graph()
+
     # Placeholders for inputs and outputs
-    encoder_inputs = tf.placeholder(shape=(batch_size, C.NUM_STEPS), dtype=tf.int32, name='encoder_inputs')
+    encoder_inputs = tf.placeholder(shape=(batch_size, None), dtype=tf.int32, name='encoder_inputs')
 
-    decoder_targets = tf.placeholder(shape=(batch_size, C.NUM_STEPS), dtype=tf.int32, name='decoder_targets')
-    decoder_inputs = tf.placeholder(shape=(batch_size, C.NUM_STEPS), dtype=tf.int32, name='decoder_inputs')
+    decoder_targets = tf.placeholder(shape=(batch_size, None), dtype=tf.int32, name='decoder_targets')
+    decoder_inputs = tf.placeholder(shape=(batch_size, None), dtype=tf.int32, name='decoder_inputs')
 
-    with tf.name_scope("Embeddings"):
-        source_embeddings = tf.Variable(tf.random_uniform([source_vocab_size, C.EMBEDDING_SIZE], -1.0, 1.0), dtype=tf.float32)
-        target_embeddings = tf.Variable(tf.random_uniform([target_vocab_size, C.EMBEDDING_SIZE], -1.0, 1.0), dtype=tf.float32)
+    with tf.variable_scope("Embeddings"):
+        source_embedding = tf.get_variable('source_embedding', [source_vocab_size, C.EMBEDDING_SIZE])
+        target_embedding = tf.get_variable('target_embedding', [source_vocab_size, C.EMBEDDING_SIZE])
 
-        encoder_inputs_embedded = tf.nn.embedding_lookup(source_embeddings, encoder_inputs)
-        decoder_inputs_embedded = tf.nn.embedding_lookup(target_embeddings, decoder_inputs)
+        encoder_inputs_embedded = tf.nn.embedding_lookup(source_embedding, encoder_inputs)
+        decoder_inputs_embedded = tf.nn.embedding_lookup(target_embedding, decoder_inputs)
 
-    with tf.name_scope("Encoder"):
+    with tf.variable_scope("Encoder"):
         encoder_cell = tf.contrib.rnn.LSTMCell(C.HIDDEN_SIZE)
         initial_state = encoder_cell.zero_state(batch_size, tf.float32)
 
@@ -33,28 +36,27 @@ def define_computation_graph(source_vocab_size: int, target_vocab_size: int, bat
                                                                  initial_state=initial_state,
                                                                  dtype=tf.float32)
 
-    with tf.name_scope("Decoder"):
+    with tf.variable_scope("Decoder"):
         decoder_cell = tf.contrib.rnn.LSTMCell(C.HIDDEN_SIZE)
         decoder_outputs, decoder_final_state = tf.nn.dynamic_rnn(decoder_cell,
                                                                  decoder_inputs_embedded,
                                                                  initial_state=encoder_final_state,
                                                                  dtype=tf.float32)
 
-    with tf.name_scope("Logits"):
+    with tf.variable_scope("Logits"):
         decoder_logits = tf.contrib.layers.linear(decoder_outputs, target_vocab_size)
 
         # TODO: check axis is correct for batch-major
         decoder_prediction = tf.argmax(decoder_logits, axis=2)
 
-    with tf.name_scope("Loss"):
-        loss = tf.contrib.seq2seq.sequence_loss(logits=decoder_logits,
-                                                targets=decoder_targets,
-                                                # Using weights as a sequence mask
-                                                weights=tf.ones([batch_size, C.NUM_STEPS]),
-                                                average_across_timesteps=True,
-                                                average_across_batch=True)
+    with tf.variable_scope("Loss"):
+        one_hot_labels = tf.one_hot(decoder_targets, depth=target_vocab_size, dtype=tf.float32)
+        stepwise_cross_entropy = tf.nn.softmax_cross_entropy_with_logits_v2(
+            labels=one_hot_labels,
+            logits=decoder_logits)
+        loss = tf.reduce_mean(stepwise_cross_entropy)
 
-    with tf.name_scope('Optimizer'):
+    with tf.variable_scope('Optimizer'):
         train_step = tf.train.AdamOptimizer(learning_rate=C.LEARNING_RATE).minimize(loss)
 
     # Logging of cost scalar (@tensorboard)

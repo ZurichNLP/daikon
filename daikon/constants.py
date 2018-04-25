@@ -24,9 +24,9 @@ SOURCE_VOCAB_FILENAME = 'vocab.source.json'
 TARGET_VOCAB_FILENAME = 'vocab.target.json'
 
 # max number of tokens per sequence
-MAX_LEN = 100
-SOURCE_VOCAB_SIZE = 10000
-TARGET_VOCAB_SIZE = 10000
+MAX_LEN = 50
+SOURCE_VOCAB_SIZE = 1000
+TARGET_VOCAB_SIZE = 1000
 
 EMBEDDING_SIZE = 128
 # size of LSTM hidden state vectors

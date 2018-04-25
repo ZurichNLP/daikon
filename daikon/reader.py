@@ -26,7 +26,7 @@ def read_words(filename: str):
         indicated by <eos> (end of sentence).
     """
     with tf.gfile.GFile(filename) as f:
-        return f.read().replace("\n", " " + C.EOS + " ").split()
+        return f.read().replace("\n", " ").split()
 
 
 def read_lines(filename: str):
@@ -40,7 +40,7 @@ def read_lines(filename: str):
     """
     with tf.gfile.GFile(filename) as f:
         for line in f:
-            yield line.strip().split() + C.EOS
+            yield line.strip().split()
 
 
 def read(filename: str, vocab: vocab.Vocabulary):

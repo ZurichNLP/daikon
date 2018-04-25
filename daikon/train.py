@@ -27,13 +27,15 @@ def train(source_data: str, target_data: str, epochs: int, batch_size: int, voca
             os.makedirs(folder)
 
     # create vocabulary to map words to ids, for source and target
-    source_vocab = create_vocab(source_data, vocab_max_size, save_to)
-    target_vocab = create_vocab(target_data, vocab_max_size, save_to)
+    source_vocab = create_vocab(source_data, vocab_max_size, save_to, C.SOURCE_VOCAB_FILENAME)
+    target_vocab = create_vocab(target_data, vocab_max_size, save_to, C.TARGET_VOCAB_FILENAME)
 
     # convert training data to list of word ids
     reader_ids = reader.read_parallel(source_data, target_data, source_vocab, target_vocab, C.MAX_LEN)
 
     # define computation graph
+    logging.info("Building computation graph.")
+
     graph_components = define_computation_graph(source_vocab.size, target_vocab.size, batch_size)
     encoder_inputs, decoder_targets, decoder_inputs, loss, train_step, _, _, summary = graph_components
 
@@ -44,6 +46,9 @@ def train(source_data: str, target_data: str, epochs: int, batch_size: int, voca
         session.run(tf.global_variables_initializer())
         # write logs (@tensorboard)
         summary_writer = tf.summary.FileWriter(log_to, graph=tf.get_default_graph())
+
+        logging.info("Starting training.")
+
         # iterate over training data `epochs` times
         for epoch in range(1, epochs + 1):
             total_loss = 0.0
@@ -59,7 +64,7 @@ def train(source_data: str, target_data: str, epochs: int, batch_size: int, voca
                 summary_writer.add_summary(s, total_iter)
                 total_loss += l
                 total_iter += 1
-                if total_iter % 100 == 0:
+                if total_iter % 10 == 0:
                     logging.debug("Epoch=%s, iteration=%s", epoch, total_iter)
             perplexity = np.exp(total_loss / total_iter)
             logging.info("Perplexity on training data after epoch %s: %.2f", epoch, perplexity)
