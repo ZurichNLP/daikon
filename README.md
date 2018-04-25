@@ -1,7 +1,8 @@
-# romanesco
+# daikon
 
-A vanilla recurrent neural network (RNN) language model. Supports model
-training, text scoring, and text generation.
+A simple encoder-decoder model based on recurrent neural networks (RNNs) for machine translation. Supports model training and translation with trained models.
+
+`daikon` is derived from [`romanesco`](https://github.com/laeubli/romanesco) written by Samuel Läubli.
 
 ## Installation
 
@@ -10,14 +11,14 @@ installed. Make sure you also have `python >= 3.5`, `pip` and `git` installed,
 and run
 
 ```bash
-git clone https://github.com/laeubli/romanesco.git
-cd romanesco
+git clone https://github.com/bricksdont/daikon
+cd daikon
 pip install --user -e .
 ```
 
-If you have sudo privileges and prefer to install `romanesco` for all users on
+If you have sudo privileges and prefer to install `daikon` for all users on
 your system, omit the `--user` flag. The `-e` flag installs the app in “editable
-mode”, meaning you can change source files (such as `romanesco/const.py`) at any
+mode”, meaning you can change source files (such as `daikon/constants.py`) at any
 time.
 
 ## Model training
@@ -41,17 +42,17 @@ S o <blank> t h a t &apos; s <blank> t h e <blank> w a y <blank> i t <blank> i s
 V e r y <blank> s i m p l e .
 ```
 
-`romanesco` doesn't preprocess training data. If you want to train a model on lowercased input, for example, you'll need to lowercase the training data yourself.
+`daikon` doesn't preprocess training data. If you want to train a model on lowercased input, for example, you'll need to lowercase the training data yourself.
 
 To train a model from `corpus.train.txt` using GPU 0, run
 
 ```bash
-CUDA_VISIBLE_DEVICES=0 romanesco train corpus.train.txt
+CUDA_VISIBLE_DEVICES=0 daikon train corpus.train.txt
 ```
 
 By default, the trained model and vocabulary will be stored in a directory called `model`, and logs (for monitoring with Tensorboard) in `logs`. You can use custom destinations through the `-m` and `-l` command line arguments, respectively. Folders will be created if they don't exist.
 
-Some hyperparameters can be adjusted from the command line; run `romanesco train -h` for details. Other hyperparameters are currently hardcoded in `romanesco/const.py`.
+Some hyperparameters can be adjusted from the command line; run `daikon train -h` for details. Other hyperparameters are currently hardcoded in `daikon/constants.py`.
 
 
 ## Scoring
