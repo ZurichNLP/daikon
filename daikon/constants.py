@@ -11,9 +11,12 @@ from __future__ import print_function
 
 PAD_ID = 0
 EOS_ID = 1
+BOS_ID = EOS_ID
 UNK_ID = 2
 
+PAD = '<pad>'
 EOS = '<eos>'
+BOS = EOS
 UNK = '<unk>'
 
 MODEL_FILENAME = 'model'

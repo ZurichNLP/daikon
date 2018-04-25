@@ -12,7 +12,7 @@ from typing import List
 from collections import Counter
 
 from daikon import constants as C
-from daikon.reader import read_words
+from daikon import vocab
 
 
 class Vocabulary:
@@ -31,10 +31,10 @@ class Vocabulary:
             max_size: the maximum number of words (only keep most frequent n
                       words)
         """
-        words = read_words(filename)
+        words = vocab.read_words(filename)
         word_counts = Counter(words)
         sorted_words = [word for word, _ in word_counts.most_common() if word != C.UNK]
-        sorted_words = [C.UNK] + sorted_words
+        sorted_words = [C.PAD, C.EOS, C.UNK] + sorted_words
         if max_size:
             sorted_words = sorted_words[:max_size]
         for i, word in enumerate(sorted_words):

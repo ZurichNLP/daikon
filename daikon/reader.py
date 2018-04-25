@@ -97,7 +97,7 @@ NestedIds = List[List[int]]
 ReaderTuple = Tuple[NestedIds, NestedIds]
 
 
-def iterate(reader_ids: ReaderTuple, batch_size: int):
+def iterate(reader_ids: ReaderTuple, batch_size: int, shuffle: bool = True):
     """Yields sequences of length `num_steps` for NMT training (or translation),
     in batches of size `batch_size`.
 
@@ -112,23 +112,25 @@ def iterate(reader_ids: ReaderTuple, batch_size: int):
         and y are NumPy arrays of shape (num_steps, batch_size).
 
     Example:
-        >>> raw_data = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15]
-        >>> i = iterator(raw_data, batch_size=3, num_steps=2)
-        >>> batches = list(i)
-        >>> len(batches)
-        2
+        >>> reader_ids = [([1,2,3,4], [5,6,7,8,9]), ([10, 11], [12, 13, 14, 15]), ([16, 17, 18], [19]), ([20, 21], [22, 23]), ([24, 25], [26, 27]), ([28, 29], [30, 31])]
+        >>> batches = list(reader.iterate(reader_ids, batch_size=2, shuffle=False))
         >>> batches[0]
-        ( [[ 0,  1],  [[ 1,  2],
-           [ 5,  6],   [ 6,  7],
-           [10, 11]],  [11, 12]] )
+        (array([[ 1,  2,  3,  4],
+               [10, 11,  0,  0]]), array([[ 5,  6,  7,  8,  9],
+               [12, 13, 14, 15,  0]]))
         >>> batches[1]
-        ( [[ 2,  3],  [[ 3,  4],
-           [ 7,  8],   [ 8,  9],
-           [12, 13]]   [13, 14]] )
+        (array([[16, 17, 18],
+               [20, 21,  0]]), array([[19,  0],
+               [22, 23]]))
     """
-    shuffle(reader_ids)
+    if shuffle:
+        reader_ids = list(reader_ids)  # TODO: do not make actual copies here
+        shuffle(reader_ids)
 
     source_data_ids, target_data_ids = zip(*reader_ids)
+
+    source_data_ids = list(source_data_ids)
+    target_data_ids = list(target_data_ids)
 
     source_len = len(source_data_ids)
     target_len = len(target_data_ids)
@@ -137,27 +139,25 @@ def iterate(reader_ids: ReaderTuple, batch_size: int):
 
     num_batches = source_len // batch_size
 
-    source_data_ids = source_data_ids[0 : batch_size * num_batches]  # cut off
-    target_data_ids = target_data_ids[0 : batch_size * num_batches]  # cut off
+    source_data_ids = source_data_ids[0: batch_size * num_batches]  # cut off
+    target_data_ids = target_data_ids[0: batch_size * num_batches]  # cut off
 
-    source_data_ids = np.reshape(source_data_ids, (batch_size, num_batches))
-    target_data_ids = np.reshape(target_data_ids, (batch_size, num_batches))
+    for i in range(num_batches):
+        s = i * batch_size
+        e = s + batch_size
 
+        source_slice = source_data_ids[s:e]
+        target_slice = target_data_ids[s:e]
 
+        max_len_in_source = max([len(s) for s in source_slice])
+        max_len_in_target = max([len(s) for s in target_slice])
 
-    # raw_data = [the cat sits on the mat and eats a tasty little tuna fish .]
-    # data = [[the cat   sits   on  ]
-    #         [the mat   and    eats]
-    #         [a   tasty little tuna]]  with batch_size = 3
+        # padded_sources will be `encoder_inputs`
+        padded_sources = [pad_sequence(ids, C.PAD_ID, max_len_in_source) for ids in source_slice]
+        padded_targets = [pad_sequence(ids, C.PAD_ID, max_len_in_target) for ids in target_slice]
 
-    num_batches_in_epoch = (num_batches - 1) // num_steps
-    # -1 because y will be x, time shifted by 1
+        decoder_targets = [sequence + [C.EOS_ID] for sequence in padded_targets]
+        # shifted by one token to the right
+        decoder_inputs = [[C.EOS_ID] + sequence for sequence in padded_targets]
 
-    for i in range(num_batches_in_epoch):
-        s = i * num_steps # start
-        e = s + num_steps # end
-        yield data[:, s : e], data[:, s + 1 : e + 1]
-
-        # ( [[the cat  ],  [[cat   sits],
-        #    [the mat  ],   [mat   and ],
-        #    [a   tasty]],  [tasty little]] )
+        yield padded_sources, decoder_inputs, decoder_targets
