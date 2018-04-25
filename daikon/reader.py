@@ -5,10 +5,10 @@
 # Samuel Läubli <laeubli@cl.uzh.ch>
 # Mathias Müller <mmueller@cl.uzh.ch>
 
+import random
 import numpy as np
 import tensorflow as tf
 
-from random import shuffle
 from typing import List, Tuple
 
 from daikon import constants as C
@@ -112,20 +112,25 @@ def iterate(reader_ids: ReaderTuple, batch_size: int, shuffle: bool = True):
         and y are NumPy arrays of shape (num_steps, batch_size).
 
     Example:
+        >>> from daikon import reader
         >>> reader_ids = [([1,2,3,4], [5,6,7,8,9]), ([10, 11], [12, 13, 14, 15]), ([16, 17, 18], [19]), ([20, 21], [22, 23]), ([24, 25], [26, 27]), ([28, 29], [30, 31])]
         >>> batches = list(reader.iterate(reader_ids, batch_size=2, shuffle=False))
-        >>> batches[0]
-        (array([[ 1,  2,  3,  4],
-               [10, 11,  0,  0]]), array([[ 5,  6,  7,  8,  9],
-               [12, 13, 14, 15,  0]]))
-        >>> batches[1]
-        (array([[16, 17, 18],
-               [20, 21,  0]]), array([[19,  0],
-               [22, 23]]))
+        >>> len(batches)
+        3
+        >>> encoder_inputs, decoder_inputs, decoder_targets = batches[0]
+        >>> encoder_inputs
+        array([[ 1,  2,  3,  4],
+               [10, 11,  0,  0]])
+        >>> decoder_inputs
+        array([[ 1,  5,  6,  7,  8,  9],
+               [ 1, 12, 13, 14, 15,  0]])
+        >>> decoder_targets
+        array([[ 5,  6,  7,  8,  9,  1],
+               [12, 13, 14, 15,  1,  0]])
     """
     if shuffle:
         reader_ids = list(reader_ids)  # TODO: do not make actual copies here
-        shuffle(reader_ids)
+        random.shuffle(reader_ids)
 
     source_data_ids, target_data_ids = zip(*reader_ids)
 
@@ -149,15 +154,16 @@ def iterate(reader_ids: ReaderTuple, batch_size: int, shuffle: bool = True):
         source_slice = source_data_ids[s:e]
         target_slice = target_data_ids[s:e]
 
-        max_len_in_source = max([len(s) for s in source_slice])
-        max_len_in_target = max([len(s) for s in target_slice])
-
-        # padded_sources will be `encoder_inputs`
-        padded_sources = [pad_sequence(ids, C.PAD_ID, max_len_in_source) for ids in source_slice]
-        padded_targets = [pad_sequence(ids, C.PAD_ID, max_len_in_target) for ids in target_slice]
-
-        decoder_targets = [sequence + [C.EOS_ID] for sequence in padded_targets]
+        # add EOS and BOS symbols
+        decoder_targets = [sequence + [C.EOS_ID] for sequence in target_slice]
         # shifted by one token to the right
-        decoder_inputs = [[C.EOS_ID] + sequence for sequence in padded_targets]
+        decoder_inputs = [[C.BOS_ID] + sequence for sequence in target_slice]
 
-        yield padded_sources, decoder_inputs, decoder_targets
+        max_len_in_source = max([len(s) for s in source_slice])
+        max_len_in_target = max([len(s) for s in decoder_targets])
+
+        encoder_inputs = [pad_sequence(ids, C.PAD_ID, max_len_in_source) for ids in source_slice]
+        decoder_inputs = [pad_sequence(ids, C.PAD_ID, max_len_in_target) for ids in decoder_inputs]
+        decoder_targets = [pad_sequence(ids, C.PAD_ID, max_len_in_target) for ids in decoder_targets]
+
+        yield np.array(encoder_inputs), np.array(decoder_inputs), np.array(decoder_targets)
