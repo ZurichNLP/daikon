@@ -37,7 +37,7 @@ def train(source_data: str, target_data: str, epochs: int, batch_size: int, voca
     logging.info("Building computation graph.")
 
     graph_components = define_computation_graph(source_vocab.size, target_vocab.size, batch_size)
-    encoder_inputs, decoder_targets, decoder_inputs, loss, train_step, _, _, summary = graph_components
+    encoder_inputs, decoder_targets, decoder_inputs, loss, train_step, _, summary = graph_components
 
     saver = tf.train.Saver()
 

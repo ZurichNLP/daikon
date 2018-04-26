@@ -36,9 +36,8 @@ def get_argument_parser():
     sample = subparsers.add_parser('translate', help='Use a trained model to translate new text.')
     sample.add_argument('-m', '--load_from', default='model',
                         help='the folder to load model and vocabulary files from.')
-    sample.add_argument('-i', '--input-file', type=str, required=False,
-                        help='Path to file that should be translated. If omitted, daikon '
-                        'assumes input from STDIN.')
+    sample.add_argument('-i', '--input-text', type=str, required=True,
+                        help='String that should be translated.')
 
     return parser
 

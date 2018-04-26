@@ -46,9 +46,6 @@ def define_computation_graph(source_vocab_size: int, target_vocab_size: int, bat
     with tf.variable_scope("Logits"):
         decoder_logits = tf.contrib.layers.linear(decoder_outputs, target_vocab_size)
 
-        # TODO: check axis is correct for batch-major
-        decoder_prediction = tf.argmax(decoder_logits, axis=2)
-
     with tf.variable_scope("Loss"):
         one_hot_labels = tf.one_hot(decoder_targets, depth=target_vocab_size, dtype=tf.float32)
         stepwise_cross_entropy = tf.nn.softmax_cross_entropy_with_logits_v2(
@@ -63,4 +60,4 @@ def define_computation_graph(source_vocab_size: int, target_vocab_size: int, bat
     tf.summary.scalar('loss', loss)
     summary = tf.summary.merge_all()
 
-    return encoder_inputs, decoder_targets, decoder_inputs, loss, train_step, decoder_logits, decoder_prediction, summary
+    return encoder_inputs, decoder_targets, decoder_inputs, loss, train_step, decoder_logits, summary

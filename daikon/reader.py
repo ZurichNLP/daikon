@@ -12,7 +12,6 @@ import tensorflow as tf
 from typing import List, Tuple
 
 from daikon import constants as C
-from daikon import vocab
 
 
 def read_words(filename: str):
@@ -43,12 +42,12 @@ def read_lines(filename: str):
             yield line.strip().split()
 
 
-def read(filename: str, vocab: vocab.Vocabulary):
+def read(filename: str, vocab):
     """Turns a tokenised text into a list of token ids.
 
     Args:
         filename: path to tokenised text file, one sentence per line.
-        vocab: an instance of type romanesco.vocab.Vocabulary
+        vocab: an instance of type daikon.vocab.Vocabulary
 
     Returns:
         A list of lists, where an individual list contains word ids for
@@ -61,8 +60,8 @@ def read(filename: str, vocab: vocab.Vocabulary):
 
 def read_parallel(source_filename: str,
                   target_filename: str,
-                  source_vocab: vocab.Vocabulary,
-                  target_vocab: vocab.Vocabulary,
+                  source_vocab,
+                  target_vocab,
                   max_length: int):
 
     for source_ids, target_ids in zip(read(source_filename, source_vocab),
