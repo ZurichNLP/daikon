@@ -64,7 +64,7 @@ def train(source_data: str, target_data: str, epochs: int, batch_size: int, voca
                 summary_writer.add_summary(s, total_iter)
                 total_loss += l
                 total_iter += 1
-                if total_iter % 10 == 0:
+                if total_iter % 100 == 0:
                     logging.debug("Epoch=%s, iteration=%s", epoch, total_iter)
             perplexity = np.exp(total_loss / total_iter)
             logging.info("Perplexity on training data after epoch %s: %.2f", epoch, perplexity)

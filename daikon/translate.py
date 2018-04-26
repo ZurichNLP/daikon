@@ -39,8 +39,6 @@ def translate(load_from: str, input_text: str = [], train_mode: bool = False, **
     target_ids = np.full(shape=(1, C.MAX_LEN), fill_value=C.UNK_ID, dtype=np.int)
 
     with tf.Session() as session:
-        # TODO: needed?
-        # session.run(tf.global_variables_initializer())
 
         # load model
         saver.restore(session, os.path.join(load_from, C.MODEL_FILENAME))
@@ -54,6 +52,7 @@ def translate(load_from: str, input_text: str = [], train_mode: bool = False, **
                          decoder_targets: target_ids}
             logits_result = session.run([decoder_logits], feed_dict=feed_dict)
 
+            # first session result, first item in batch, target symbol at position `index`
             next_symbol_logits = logits_result[0][0][index]
             next_symbol_probs = softmax(next_symbol_logits)
 

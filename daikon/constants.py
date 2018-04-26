@@ -5,10 +5,6 @@
 # Samuel Läubli <laeubli@cl.uzh.ch>
 # Mathias Müller <mmueller@cl.uzh.ch>
 
-from __future__ import absolute_import
-from __future__ import division
-from __future__ import print_function
-
 PAD_ID = 0
 EOS_ID = 1
 BOS_ID = EOS_ID
@@ -25,12 +21,12 @@ TARGET_VOCAB_FILENAME = 'vocab.target.json'
 
 # max number of tokens per sequence
 MAX_LEN = 50
-SOURCE_VOCAB_SIZE = 1000
-TARGET_VOCAB_SIZE = 1000
+SOURCE_VOCAB_SIZE = 10000
+TARGET_VOCAB_SIZE = 10000
 
-EMBEDDING_SIZE = 128
+EMBEDDING_SIZE = 512
 # size of LSTM hidden state vectors
-HIDDEN_SIZE = 512
+HIDDEN_SIZE = 1024
 
 NUM_LAYERS = 1
 # truncate backpropagation though unrolled recurrent network
