@@ -12,30 +12,47 @@ from daikon.vocab import Vocabulary
 from daikon.compgraph import define_computation_graph
 
 
-def score(data: str, load_from: str, batch_size: int, **kwargs):
+def score(source_data: str, target_data: str, load_from: str, corpus_average: bool, normalize: bool, **kwargs):
     """Scores a text using a trained translation model. See argument description in `bin/daikon`."""
 
-    # TODO
-    raise NotImplementedError
+    # fix batch size at 1 to get individual scores for sentences
+    batch_size = 1
 
-    vocab = Vocabulary()
-    vocab.load(os.path.join(load_from, 'vocab.json'))
+    source_vocab = Vocabulary()
+    target_vocab = Vocabulary()
+    source_vocab.load(os.path.join(load_from, C.SOURCE_VOCAB_FILENAME))
+    target_vocab.load(os.path.join(load_from, C.TARGET_VOCAB_FILENAME))
 
-    raw_data = reader.read(data, vocab)
+    reader_ids = list(reader.read_parallel(source_data, target_data, source_vocab, target_vocab, C.SCORE_MAX_LEN))
 
-    inputs, targets, loss, _, _, _ = define_computation_graph(vocab.size, batch_size)
+    encoder_inputs, decoder_targets, decoder_inputs, loss, _, _, _ = define_computation_graph(source_vocab.size, target_vocab.size, batch_size)
 
     saver = tf.train.Saver()
 
     with tf.Session() as session:
         # load model
-        saver.restore(session, os.path.join(load_from, MODEL_FILENAME))
+        saver.restore(session, os.path.join(load_from, C.MODEL_FILENAME))
 
-        total_loss = 0.0
+        losses = []
         total_iter = 0
-        for x, y in reader.iterate(raw_data, batch_size, NUM_STEPS):
-            l = session.run([loss], feed_dict={inputs: x, targets: y})
-            total_loss += l[0]
+        for x, y, z in reader.iterate(reader_ids, batch_size, shuffle=False):
+            feed_dict = {encoder_inputs: x,
+                         decoder_inputs: y,
+                         decoder_targets: z}
+            l = session.run([loss], feed_dict=feed_dict)
+
+            # first session variable
+            l = l[0]
+            if normalize:
+                # normalize by length of target sequence (including EOS token)
+                l /= y.shape[1]
+
+            losses.append(l)
             total_iter += 1
-        perplexity = np.exp(total_loss / total_iter)
-        return perplexity
+
+        if corpus_average:
+            total_loss = np.sum(losses)
+            perplexity = np.exp(total_loss / total_iter)
+            return perplexity
+        else:
+            return np.exp(losses)

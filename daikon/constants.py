@@ -32,4 +32,6 @@ NUM_LAYERS = 1
 # truncate backpropagation though unrolled recurrent network
 NUM_STEPS = MAX_LEN
 
+SCORE_MAX_LEN = 1000
+
 LEARNING_RATE = 0.0001

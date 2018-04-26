@@ -39,6 +39,19 @@ def get_argument_parser():
     sample.add_argument('-i', '--input-text', type=str, required=True,
                         help='String that should be translated.')
 
+    # score
+    score = subparsers.add_parser('score', help='Use a trained model to score parallel text.')
+    score.add_argument('-m', '--load_from', default='model',
+                        help='the folder to load model and vocabulary files from.')
+    score.add_argument('-a', '--corpus_average', default=False, action="store_true",
+                        help='Output one single score that is a corpus-level average.')
+    score.add_argument('-n', '--normalize', default=False, action="store_true",
+                        help='Normalize scores by target sequence length.')
+    score.add_argument('--source', type=str, required=True, dest='source_data',
+                       help='the source training data, a tokenized, plain text file.')
+    score.add_argument('--target', type=str, required=True, dest='target_data',
+                       help='the target training data, a tokenized, plain text file.')
+
     return parser
 
 
@@ -48,11 +61,13 @@ def action_train(args):
 
 
 def action_score(args):
-    # TODO
-    raise NotImplementedError
     from daikon.score import score
-    perplexity = score(**vars(args))
-    print('Perplexity: {0:.2f}'.format(perplexity))
+    result = score(**vars(args))
+    if args.corpus_average:
+        print('Perplexity: {0:.2f}'.format(result))
+    else:
+        result = [str(r) for r in result]
+        print("\n".join(result))
 
 
 def action_translate(args):
