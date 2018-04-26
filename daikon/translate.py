@@ -46,7 +46,7 @@ def translate(load_from: str, input_text: str = [], train_mode: bool = False, **
 
             # target ids will serve as decoder inputs and decoder targets,
             # but decoder targets will not be used to compute logits
-            target_ids = np.array([C.BOS_ID] + sampled_sequence).reshape(1, -1)
+            target_ids = np.array([C.BOS_ID] + translated_sequence).reshape(1, -1)
 
             feed_dict = {encoder_inputs: source_ids,
                          decoder_inputs: target_ids,
