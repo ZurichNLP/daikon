@@ -6,14 +6,17 @@ import logging
 import numpy as np
 import tensorflow as tf
 
-from romanesco import reader
-from romanesco.const import *
-from romanesco.vocab import Vocabulary
-from romanesco.compgraph import define_computation_graph
+from daikon import reader
+from daikon import constants as C
+from daikon.vocab import Vocabulary
+from daikon.compgraph import define_computation_graph
 
 
 def score(data: str, load_from: str, batch_size: int, **kwargs):
-    """Scores a text using a trained language model. See argument description in `bin/romanesco`."""
+    """Scores a text using a trained translation model. See argument description in `bin/daikon`."""
+
+    # TODO
+    raise NotImplementedError
 
     vocab = Vocabulary()
     vocab.load(os.path.join(load_from, 'vocab.json'))

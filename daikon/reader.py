@@ -21,15 +21,15 @@ def read_words(filename: str):
         filename: path to tokenised text file, one sentence per line.
 
     Returns:
-        A single list for all tokens in all sentences, with sentence boundaries
-        indicated by <eos> (end of sentence).
+        A single list for all tokens in all sentences, all newline
+        characters replaced with spaces.
     """
     with tf.gfile.GFile(filename) as f:
         return f.read().replace("\n", " ").split()
 
 
 def read_lines(filename: str):
-    """Reads a tokenised text.
+    """Reads a tokenised text file line by line.
 
     Args:
         filename: path to tokenised text file, one sentence per line.
@@ -50,8 +50,8 @@ def read(filename: str, vocab):
         vocab: an instance of type daikon.vocab.Vocabulary
 
     Returns:
-        A list of lists, where an individual list contains word ids for
-        one input sentence.
+        An iterator that yields a list of lists, where an individual
+        list contains word ids for one input sentence.
     """
     lines = read_lines(filename)
     for line in lines:
@@ -63,6 +63,21 @@ def read_parallel(source_filename: str,
                   source_vocab,
                   target_vocab,
                   max_length: int):
+    """
+    Reads a pair of files that are parallel text.
+
+    Args:
+        source_filename: path to source text file.
+        target_filename: path to target text file.
+        source_vocab: an instance of type daikon.vocab.Vocabulary
+        target_vocab: an instance of type daikon.vocab.Vocabulary
+        max_length: if a sentence is longer than max_length, it
+        is skipped.
+
+    Returns:
+        An iterator that yields tuples of two lists. The lists are
+        the list of source word ids, and target word ids, respectively.
+    """
 
     for source_ids, target_ids in zip(read(source_filename, source_vocab),
                                       read(target_filename, target_vocab)):
@@ -79,6 +94,15 @@ def read_parallel(source_filename: str,
 def pad_sequence(word_ids: List[int], pad_id: int, max_length: int):
     """
     Pads sequences if they are shorter than max_length.
+
+    Args:
+        word_ids: A list of word ids.
+        pad_id: The ID that represents the padding symbol.
+        max_length: The length up to which a sequence should be padded.
+
+    Returns:
+        A sequence that is padded to the right, if it was shorter than
+        the maximum length.
 
     Example:
     >>> pad_sequence([1, 2, 3, 4], pad_id=0, max_length=10)
@@ -101,10 +125,14 @@ def iterate(reader_ids: ReaderTuple, batch_size: int, shuffle: bool = True):
     in batches of size `batch_size`.
 
     Args:
-        TODO
+        reader_ids: A list of parallel pairs as returned by
+                    daikon.reader.read_parallel
+        batch_size: Number of sequences in a batch.
+        shuffle: Whether the ordering of sequences should be random.
 
-    Yields:
-        TODO
+    Returns:
+        An iterator that returns encoder inputs, decoder inputs and decoder
+        targets, in batches, as padded numpy arrays.
 
     Example:
         >>> from daikon import reader
