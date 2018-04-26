@@ -55,7 +55,7 @@ def translate(load_from: str, input_text: str = [], train_mode: bool = False, **
 
             # first session result, first item in batch, target symbol at last position
             next_symbol_logits = logits_result[0][0][-1]
-            next_symbol = np.max(next_symbol_logits)
+            next_symbol = np.argmax(next_symbol_logits)
 
             if next_symbol in [C.EOS_ID, C.PAD_ID]:
                 break
