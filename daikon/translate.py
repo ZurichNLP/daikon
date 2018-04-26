@@ -27,16 +27,12 @@ def translate(load_from: str, input_text: str = [], train_mode: bool = False, **
     target_vocab = vocab.Vocabulary()
     target_vocab.load(os.path.join(load_from, C.TARGET_VOCAB_FILENAME))
 
-    # fix batch_size to 1 for now
+    # fix batch_size to 1
     encoder_inputs, decoder_targets, decoder_inputs, _, _, decoder_logits, _ = compgraph.define_computation_graph(source_vocab.size, target_vocab.size, 1)
 
     saver = tf.train.Saver()
 
     source_ids = np.array(source_vocab.get_ids(input_text.split())).reshape(1, -1)
-
-    # target ids will serve as decoder inputs and decoder targets
-    # TODO: increase permissible length of translation?
-    target_ids = np.full(shape=(1, C.MAX_LEN), fill_value=C.UNK_ID, dtype=np.int)
 
     with tf.Session() as session:
 
@@ -45,15 +41,19 @@ def translate(load_from: str, input_text: str = [], train_mode: bool = False, **
 
         sampled_sequence = []
 
-        for index in range(C.MAX_LEN):
+        # TODO: increase permissible length of translation?
+        for _ in range(C.MAX_LEN):
+
+            # target ids will serve as decoder inputs and decoder targets
+            target_ids = np.array([C.BOS_ID] + sampled_sequence).reshape(1, -1)
 
             feed_dict = {encoder_inputs: source_ids,
                          decoder_inputs: target_ids,
                          decoder_targets: target_ids}
             logits_result = session.run([decoder_logits], feed_dict=feed_dict)
 
-            # first session result, first item in batch, target symbol at position `index`
-            next_symbol_logits = logits_result[0][0][index]
+            # first session result, first item in batch, target symbol at last position
+            next_symbol_logits = logits_result[0][0][-1]
             next_symbol_probs = softmax(next_symbol_logits)
 
             sampled_symbol = np.random.choice(range(target_vocab.size), p=next_symbol_probs)
@@ -62,7 +62,6 @@ def translate(load_from: str, input_text: str = [], train_mode: bool = False, **
                 break
 
             sampled_sequence.append(sampled_symbol)
-            target_ids[0][index] = sampled_symbol
 
     words = target_vocab.get_words(sampled_sequence)
     return ' '.join(words)
