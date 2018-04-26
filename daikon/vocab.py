@@ -1,19 +1,25 @@
 #!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+
+# Authors:
+# Samuel Läubli <laeubli@cl.uzh.ch>
+# Mathias Müller <mmueller@cl.uzh.ch>
 
 import json
+import os
 import random
 from typing import List
 from collections import Counter
 
-from romanesco import const as C
-from romanesco.reader import read_words
+from daikon import constants as C
+from daikon import reader
 
 
 class Vocabulary:
 
     def __init__(self):
-        self._id = {} # {word: id}
-        self._word = {} # {id: word}
+        self._id = {}  # {word: id}
+        self._word = {}  # {id: word}
 
     def build(self, filename: str, max_size: int = None):
         """Builds a vocabulary mapping words (tokens) to ids (integers) and vice
@@ -25,10 +31,11 @@ class Vocabulary:
             max_size: the maximum number of words (only keep most frequent n
                       words)
         """
-        words = read_words(filename)
+        words = reader.read_words(filename)
         word_counts = Counter(words)
         sorted_words = [word for word, _ in word_counts.most_common() if word != C.UNK]
-        sorted_words = [C.UNK] + sorted_words
+        # TODO: do not hard-code the id of special symbols like that
+        sorted_words = [C.PAD, C.EOS, C.UNK] + sorted_words
         if max_size:
             sorted_words = sorted_words[:max_size]
         for i, word in enumerate(sorted_words):
@@ -46,14 +53,11 @@ class Vocabulary:
     def size(self):
         return len(self._id)
 
-    def get_id(self, word: str, strict: bool = False):
+    def get_id(self, word: str):
         try:
             return self._id[word]
         except KeyError:
-            if strict:
-                raise
-            else:
-                return self._id[C.UNK]
+            return self._id[C.UNK]
 
     def get_word(self, id: int):
         return self._word[id]
@@ -72,3 +76,11 @@ class Vocabulary:
         """Writes this vocabulary to a file in JSON format."""
         with open(filepath, 'w') as f:
             json.dump(self._id, f, indent=4)
+
+
+def create_vocab(data: str, max_size: int, save_to: str, filename: str):
+    vocab = Vocabulary()
+    vocab.build(data, max_size=max_size)
+    vocab.save(os.path.join(save_to, filename))
+
+    return vocab

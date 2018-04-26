@@ -1,4 +1,9 @@
 #!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+
+# Authors:
+# Samuel Läubli <laeubli@cl.uzh.ch>
+# Mathias Müller <mmueller@cl.uzh.ch>
 
 import sys
 import logging
@@ -7,13 +12,16 @@ import argparse
 
 def get_argument_parser():
     parser = argparse.ArgumentParser()
-    subparsers = parser.add_subparsers(dest='action', help='A vanilla recurrent '
-                                       'neural network (RNN) language model')
+    subparsers = parser.add_subparsers(dest='action', help='A simple encoder-'
+                                       'decoder machine translation model')
     parser.add_argument('-q', '--quiet', action='store_true',
                         help='No logging output except for warnings and errors.')
     # train
-    train = subparsers.add_parser('train', help='Train a language model.')
-    train.add_argument('data', help='the training data, a plain text file.')
+    train = subparsers.add_parser('train', help='Train a machine translation model.')
+    train.add_argument('--source', type=str, required=True, dest='source_data',
+                       help='the source training data, a tokenized, plain text file.')
+    train.add_argument('--target', type=str, required=True, dest='target_data',
+                       help='the target training data, a tokenized, plain text file.')
     train.add_argument('-e', '--epochs', type=int, default=10,
                        help='the number of training epochs.')
     train.add_argument('-b', '--batch_size', type=int, default=20)
@@ -23,43 +31,34 @@ def get_argument_parser():
                        help='the folder to store model files.')
     train.add_argument('-l', '--log_to', default='logs',
                        help='the folder to store log files. Use for monitoring with tensorboard.')
-    # score
-    score = subparsers.add_parser('score', help='Use a trained model to score a text.')
-    score.add_argument('data', help='the data to be scored, a plain text file.')
-    score.add_argument('-m', '--load_from', default='model',
-                       help='the folder to load model and vocabulary files from.')
-    score.add_argument('-b', '--batch_size', type=int, default=1)
-    # sample
-    sample = subparsers.add_parser('sample', help='Use a trained model to generate a new text.')
-    sample.add_argument('length', type=int, default=100, help='the number of '
-                        'symbols to be sampled, i.e., the length of the resulting text.')
+
+    # translate
+    sample = subparsers.add_parser('translate', help='Use a trained model to translate new text.')
     sample.add_argument('-m', '--load_from', default='model',
                         help='the folder to load model and vocabulary files from.')
-    sample.add_argument('-f', '--first_symbols', type=lambda s: s.split(" "), default=[],
-                        help='the first symbols of the text to be generated.')
+    sample.add_argument('-i', '--input-text', type=str, required=True,
+                        help='String that should be translated.')
 
     return parser
 
 
 def action_train(args):
-    from romanesco.train import train
+    from daikon.train import train
     train(**vars(args))
 
 
 def action_score(args):
-    from romanesco.score import score
+    # TODO
+    raise NotImplementedError
+    from daikon.score import score
     perplexity = score(**vars(args))
     print('Perplexity: {0:.2f}'.format(perplexity))
 
 
-def action_sample(args):
-    from romanesco.sample import sample
-    generated_text = sample(**vars(args))
-    print(generated_text)
-
-
-def action_generate(args):
-    pass
+def action_translate(args):
+    from daikon.translate import translate
+    translation = translate(**vars(args))
+    print(translation)
 
 
 def main():
@@ -75,8 +74,8 @@ def main():
         action_train(args)
     elif args.action == 'score':
         action_score(args)
-    elif args.action == 'sample':
-        action_sample(args)
+    elif args.action == 'translate':
+        action_translate(args)
 
 
 if __name__ == '__main__':

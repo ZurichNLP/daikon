@@ -1,4 +1,9 @@
 #!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+
+# Authors:
+# Samuel Läubli <laeubli@cl.uzh.ch>
+# Mathias Müller <mmueller@cl.uzh.ch>
 
 import os
 import logging
@@ -6,14 +11,13 @@ import logging
 import numpy as np
 import tensorflow as tf
 
-from romanesco import reader
-from romanesco.vocab import Vocabulary
-from romanesco.compgraph import define_computation_graph
+from daikon import reader
+from daikon import constants as C
+from daikon.vocab import create_vocab
+from daikon.compgraph import define_computation_graph
 
-from romanesco import const as C
 
-
-def train(data: str, epochs: int, batch_size: int, vocab_max_size: int,
+def train(source_data: str, target_data: str, epochs: int, batch_size: int, vocab_max_size: int,
           save_to: str, log_to: str, **kwargs):
     """Trains a language model. See argument description in `bin/romanesco`."""
 
@@ -22,16 +26,18 @@ def train(data: str, epochs: int, batch_size: int, vocab_max_size: int,
         if not os.path.exists(folder):
             os.makedirs(folder)
 
-    # create vocabulary to map words to ids
-    vocab = Vocabulary()
-    vocab.build(data, max_size=vocab_max_size)
-    vocab.save(os.path.join(save_to, C.VOCAB_FILENAME))
+    # create vocabulary to map words to ids, for source and target
+    source_vocab = create_vocab(source_data, vocab_max_size, save_to, C.SOURCE_VOCAB_FILENAME)
+    target_vocab = create_vocab(target_data, vocab_max_size, save_to, C.TARGET_VOCAB_FILENAME)
 
     # convert training data to list of word ids
-    raw_data = reader.read(data, vocab)
+    reader_ids = list(reader.read_parallel(source_data, target_data, source_vocab, target_vocab, C.MAX_LEN))
 
     # define computation graph
-    inputs, targets, loss, train_step, _, summary = define_computation_graph(vocab.size, batch_size)
+    logging.info("Building computation graph.")
+
+    graph_components = define_computation_graph(source_vocab.size, target_vocab.size, batch_size)
+    encoder_inputs, decoder_targets, decoder_inputs, loss, train_step, _, summary = graph_components
 
     saver = tf.train.Saver()
 
@@ -40,13 +46,21 @@ def train(data: str, epochs: int, batch_size: int, vocab_max_size: int,
         session.run(tf.global_variables_initializer())
         # write logs (@tensorboard)
         summary_writer = tf.summary.FileWriter(log_to, graph=tf.get_default_graph())
+
+        logging.info("Starting training.")
+
         # iterate over training data `epochs` times
         for epoch in range(1, epochs + 1):
             total_loss = 0.0
             total_iter = 0
-            for x, y in reader.iterate(raw_data, batch_size, C.NUM_STEPS):
+            for x, y, z in reader.iterate(reader_ids, batch_size, shuffle=True):
+
+                feed_dict = {encoder_inputs: x,
+                             decoder_inputs: y,
+                             decoder_targets: z}
+
                 l, _, s = session.run([loss, train_step, summary],
-                                      feed_dict={inputs: x, targets: y})
+                                      feed_dict=feed_dict)
                 summary_writer.add_summary(s, total_iter)
                 total_loss += l
                 total_iter += 1
