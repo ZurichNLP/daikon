@@ -39,12 +39,13 @@ def translate(load_from: str, input_text: str = [], train_mode: bool = False, **
         # load model
         saver.restore(session, os.path.join(load_from, C.MODEL_FILENAME))
 
-        sampled_sequence = []
+        translated_sequence = []
 
         # TODO: increase permissible length of translation?
         for _ in range(C.MAX_LEN):
 
-            # target ids will serve as decoder inputs and decoder targets
+            # target ids will serve as decoder inputs and decoder targets,
+            # but decoder targets will not be used to compute logits
             target_ids = np.array([C.BOS_ID] + sampled_sequence).reshape(1, -1)
 
             feed_dict = {encoder_inputs: source_ids,
@@ -54,14 +55,12 @@ def translate(load_from: str, input_text: str = [], train_mode: bool = False, **
 
             # first session result, first item in batch, target symbol at last position
             next_symbol_logits = logits_result[0][0][-1]
-            next_symbol_probs = softmax(next_symbol_logits)
+            next_symbol = np.max(next_symbol_logits)
 
-            sampled_symbol = np.random.choice(range(target_vocab.size), p=next_symbol_probs)
-
-            if sampled_symbol in [C.EOS_ID, C.PAD_ID]:
+            if next_symbol in [C.EOS_ID, C.PAD_ID]:
                 break
 
-            sampled_sequence.append(sampled_symbol)
+            translated_sequence.append(next_symbol)
 
-    words = target_vocab.get_words(sampled_sequence)
+    words = target_vocab.get_words(translated_sequence)
     return ' '.join(words)
