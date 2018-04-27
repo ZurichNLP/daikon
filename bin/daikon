@@ -36,8 +36,10 @@ def get_argument_parser():
     sample = subparsers.add_parser('translate', help='Use a trained model to translate new text.')
     sample.add_argument('-m', '--load_from', default='model',
                         help='the folder to load model and vocabulary files from.')
-    sample.add_argument('-i', '--input-text', type=str, required=True,
-                        help='String that should be translated.')
+    sample.add_argument('-i', '--input', type=str, required=False, default=None,
+                        help='File that should be translated, one sentence per line.' + ' If omitted, daikon assumes input from STDIN.')
+    sample.add_argument('-o', '--output', type=str, required=False, default=None,
+                        help='File translations should be written to. If omitted, daikon writes to STDOUT.')
 
     # score
     score = subparsers.add_parser('score', help='Use a trained model to score parallel text.')
@@ -71,9 +73,19 @@ def action_score(args):
 
 
 def action_translate(args):
-    from daikon.translate import translate
-    translation = translate(**vars(args))
-    print(translation)
+    if args.input:
+        input_file_handle = open(args.input, "r")
+    else:
+        logging.info("Argument --input not given, assuming input from STDIN.")
+        input_file_handle = sys.stdin
+
+    if args.output:
+        output_file_handle = open(args.output, "w")
+    else:
+        output_file_handle = sys.stdout
+
+    from daikon.translate import translate_file
+    translate_file(load_from=args.load_from, input_file_handle=input_file_handle, output_file_handle=output_file_handle)
 
 
 def main():
