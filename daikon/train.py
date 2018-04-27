@@ -7,6 +7,8 @@
 
 import os
 import logging
+import random
+import threading
 
 import numpy as np
 import tensorflow as tf
@@ -14,8 +16,26 @@ import tensorflow as tf
 from daikon import reader
 from daikon import constants as C
 from daikon.vocab import create_vocab
+from daikon.translate import translate_lines
 from daikon.compgraph import define_computation_graph
 
+
+def sample_after_epoch(reader_ids, source_vocab, target_vocab, load_from, epoch):
+    """
+    TODO
+    """
+    logging.debug("Start sampling translations after epoch %s.", epoch)
+    input_lines, output_lines = zip(*random.sample(reader_ids, 3))
+
+    input_lines = [" ".join(source_vocab.get_words(input_line)) for input_line in input_lines]
+    output_lines = [" ".join(target_vocab.get_words(output_line)) for output_line in output_lines]
+    translations = translate_lines(load_from=load_from, input_lines=input_lines, train_mode=True)
+
+    for input_line, output_line, translation in zip(input_lines, output_lines, translations):
+        logging.debug("-" * 30)
+        logging.debug("Input:\t\t%s", input_line)
+        logging.debug("Predicted output:\t%s", translation)
+        logging.debug("Actual output:\t%s", output_line)
 
 def train(source_data: str, target_data: str, epochs: int, batch_size: int, vocab_max_size: int,
           save_to: str, log_to: str, **kwargs):
@@ -37,7 +57,7 @@ def train(source_data: str, target_data: str, epochs: int, batch_size: int, voca
     logging.info("Building computation graph.")
 
     graph_components = define_computation_graph(source_vocab.size, target_vocab.size, batch_size)
-    encoder_inputs, decoder_targets, decoder_inputs, loss, train_step, _, summary = graph_components
+    encoder_inputs, decoder_targets, decoder_inputs, loss, train_step, decoder_logits, summary = graph_components
 
     saver = tf.train.Saver()
 
@@ -69,3 +89,9 @@ def train(source_data: str, target_data: str, epochs: int, batch_size: int, voca
             perplexity = np.exp(total_loss / total_iter)
             logging.info("Perplexity on training data after epoch %s: %.2f", epoch, perplexity)
             saver.save(session, os.path.join(save_to, C.MODEL_FILENAME))
+
+            # sample from model after epoch
+            thread = threading.Thread(target=sample_after_epoch, args=[reader_ids, source_vocab, target_vocab, save_to, epoch])
+            thread.start()
+
+        logging.info("Training finished.")

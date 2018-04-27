@@ -85,7 +85,7 @@ def translate_lines(load_from: str, input_lines: List[str], train_mode: bool = F
 
         translations = []
 
-        for line in input_file_handle:
+        for line in input_lines:
             translation = translate_line(session, line, source_vocab, target_vocab, encoder_inputs, decoder_inputs, decoder_targets, decoder_logits)
             translations.append(translation)
 
