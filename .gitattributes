@@ -1,2 +1,2 @@
-test/*.txt linguist-language=Python
+*.txt linguist-language=Python
 
