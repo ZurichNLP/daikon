@@ -27,17 +27,18 @@ def load_vocabs(load_from: str):
 
     return source_vocab, target_vocab
 
-def translate_line(session,
-                   line,
-                   source_vocab,
-                   target_vocab,
-                   encoder_inputs,
-                   decoder_inputs,
-                   decoder_targets,
-                   decoder_logits):
+def translate_line(session: tf.Session,
+                   line: str,
+                   source_vocab: vocab.Vocabulary,
+                   target_vocab: vocab.Vocabulary,
+                   encoder_inputs: tf.Tensor,
+                   decoder_inputs: tf.Tensor,
+                   decoder_targets: tf.Tensor,
+                   decoder_logits: tf.Tensor):
     """
     TODO
     """
+
     source_ids = np.array(source_vocab.get_ids(line.split())).reshape(1, -1)
 
     translated_ids = []
