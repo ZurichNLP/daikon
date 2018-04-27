@@ -61,7 +61,7 @@ Some hyperparameters can be adjusted from the command line; run `daikon train -h
 A trained model can be used to translate new text. To translate a string on GPU 0 run
 
 ```bash
-CUDA_VISIBLE_DEVICES=0 daikon translate -i "Here is a sample input text"
+CUDA_VISIBLE_DEVICES=0 echo "Here is a sample input text" | daikon translate
 ```
 
 This assumes there is a folder called `model` in your current working directory, containing a model trained with `daikon` (see above). If your model is stored somewhere else, use the `-m` command line argument.
