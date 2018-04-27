@@ -66,6 +66,8 @@ CUDA_VISIBLE_DEVICES=0 echo "Here is a sample input text" | daikon translate
 
 This assumes there is a folder called `model` in your current working directory, containing a model trained with `daikon` (see above). If your model is stored somewhere else, use the `-m` command line argument.
 
+For further options, run `daikon translate -h`.
+
 
 ## Scoring
 
