@@ -66,4 +66,15 @@ CUDA_VISIBLE_DEVICES=0 daikon translate -i "Here is a sample input text"
 
 This assumes there is a folder called `model` in your current working directory, containing a model trained with `daikon` (see above). If your model is stored somewhere else, use the `-m` command line argument.
 
-For further options, run `daikon sample -h`.
+
+## Scoring
+
+Finally, `daikon` can score existing translations (pairs of source and target sentences):
+
+```bash
+CUDA_VISIBLE_DEVICES=0 daikon score --source source.txt --target target.txt 
+```
+
+Assuming, again, that there is a folder called `model` in your current working directory that contains a trained model.
+
+For further options, run `daikon score -h`.
