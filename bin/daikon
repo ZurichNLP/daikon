@@ -31,24 +31,27 @@ def get_argument_parser():
                        help='the folder to store model files.')
     train.add_argument('-l', '--log_to', default='logs',
                        help='the folder to store log files. Use for monitoring with tensorboard.')
+    train.add_argument('-s', '--sample_after_epoch', default=False, action="store_true",
+                       help='Sample translations from the model after each epoch.')
 
     # translate
     sample = subparsers.add_parser('translate', help='Use a trained model to translate new text.')
     sample.add_argument('-m', '--load_from', default='model',
                         help='the folder to load model and vocabulary files from.')
     sample.add_argument('-i', '--input', type=str, required=False, default=None,
-                        help='File that should be translated, one sentence per line.' + ' If omitted, daikon assumes input from STDIN.')
+                        help='File that should be translated, one sentence per line.' +
+                        ' If omitted, daikon assumes input from STDIN.')
     sample.add_argument('-o', '--output', type=str, required=False, default=None,
                         help='File translations should be written to. If omitted, daikon writes to STDOUT.')
 
     # score
     score = subparsers.add_parser('score', help='Use a trained model to score parallel text.')
     score.add_argument('-m', '--load_from', default='model',
-                        help='the folder to load model and vocabulary files from.')
+                       help='the folder to load model and vocabulary files from.')
     score.add_argument('-a', '--corpus_average', default=False, action="store_true",
-                        help='Output one single score that is a corpus-level average.')
+                       help='Output one single score that is a corpus-level average.')
     score.add_argument('-n', '--normalize', default=False, action="store_true",
-                        help='Normalize scores by target sequence length.')
+                       help='Normalize scores by target sequence length.')
     score.add_argument('--source', type=str, required=True, dest='source_data',
                        help='the source training data, a tokenized, plain text file.')
     score.add_argument('--target', type=str, required=True, dest='target_data',

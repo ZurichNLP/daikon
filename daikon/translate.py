@@ -1,14 +1,17 @@
 #!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+
+# Authors:
+# Samuel Läubli <laeubli@cl.uzh.ch>
+# Mathias Müller <mmueller@cl.uzh.ch>
 
 import io
 import os
-import sys
-import logging
 
 import numpy as np
 import tensorflow as tf
 
-from typing import List
+from typing import List, Tuple
 
 from daikon import vocab
 from daikon import compgraph
@@ -18,14 +21,17 @@ from daikon import constants as C
 def softmax(x):
     return np.exp(x) / np.sum(np.exp(x), axis=0)
 
-def load_vocabs(load_from: str):
 
+def load_vocabs(load_from: str) -> Tuple[vocab.Vocabulary, vocab.Vocabulary]:
+    """
+    """
     source_vocab = vocab.Vocabulary()
     source_vocab.load(os.path.join(load_from, C.SOURCE_VOCAB_FILENAME))
     target_vocab = vocab.Vocabulary()
     target_vocab.load(os.path.join(load_from, C.TARGET_VOCAB_FILENAME))
 
     return source_vocab, target_vocab
+
 
 def translate_line(session: tf.Session,
                    line: str,
@@ -34,14 +40,14 @@ def translate_line(session: tf.Session,
                    encoder_inputs: tf.Tensor,
                    decoder_inputs: tf.Tensor,
                    decoder_targets: tf.Tensor,
-                   decoder_logits: tf.Tensor):
+                   decoder_logits: tf.Tensor) -> str:
     """
-    TODO
+    Translates one single input string.
     """
 
     source_ids = np.array(source_vocab.get_ids(line.split())).reshape(1, -1)
 
-    translated_ids = []
+    translated_ids = []  # type: List[int]
 
     for _ in range(C.TRANSLATION_MAX_LEN):
 
@@ -67,9 +73,13 @@ def translate_line(session: tf.Session,
 
     return ' '.join(words)
 
-def translate_lines(load_from: str, input_lines: List[str], train_mode: bool = False, **kwargs):
+
+def translate_lines(load_from: str,
+                    input_lines: List[str],
+                    train_mode: bool = False,
+                    **kwargs) -> List[str]:
     """
-    TODO
+    Translates a list of strings.
     """
     source_vocab, target_vocab = load_vocabs(load_from)
 
@@ -94,7 +104,8 @@ def translate_lines(load_from: str, input_lines: List[str], train_mode: bool = F
 
 def translate_file(load_from: str, input_file_handle: io.TextIOWrapper, output_file_handle: io.TextIOWrapper, **kwargs):
     """
-    TODO
+    Translates all lines that can be read from an open file handle. Translations
+    are written directly to an output file handle.
     """
     source_vocab, target_vocab = load_vocabs(load_from)
 

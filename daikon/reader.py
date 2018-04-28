@@ -9,12 +9,12 @@ import random
 import numpy as np
 import tensorflow as tf
 
-from typing import List, Tuple
+from typing import List, Tuple, Iterator
 
 from daikon import constants as C
 
 
-def read_words(filename: str):
+def read_words(filename: str) -> List[str]:
     """Reads a tokenised text.
 
     Args:
@@ -28,7 +28,7 @@ def read_words(filename: str):
         return f.read().replace("\n", " ").split()
 
 
-def read_lines(filename: str):
+def read_lines(filename: str) -> Iterator[List[str]]:
     """Reads a tokenised text file line by line.
 
     Args:
@@ -42,7 +42,7 @@ def read_lines(filename: str):
             yield line.strip().split()
 
 
-def read(filename: str, vocab):
+def read(filename: str, vocab) -> Iterator[List[int]]:
     """Turns a tokenised text into a list of token ids.
 
     Args:
@@ -91,7 +91,7 @@ def read_parallel(source_filename: str,
         yield (source_ids, target_ids)
 
 
-def pad_sequence(word_ids: List[int], pad_id: int, max_length: int):
+def pad_sequence(word_ids: List[int], pad_id: int, max_length: int) -> List[int]:
     """
     Pads sequences if they are shorter than max_length.
 
@@ -120,7 +120,7 @@ NestedIds = List[List[int]]
 ReaderTuple = Tuple[NestedIds, NestedIds]
 
 
-def iterate(reader_ids: ReaderTuple, batch_size: int, shuffle: bool = True):
+def iterate(reader_ids: List[ReaderTuple], batch_size: int, shuffle: bool = True):
     """Yields padded sequences for NMT training (or translation),
     in batches of size `batch_size`.
 
