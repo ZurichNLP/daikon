@@ -11,7 +11,7 @@ installed. Make sure you also have `python >= 3.5`, `pip` and `git` installed,
 and run
 
 ```bash
-git clone https://github.com/bricksdont/daikon
+git clone https://github.com/ZurichNLP/daikon
 cd daikon
 pip install --user -e .
 ```
