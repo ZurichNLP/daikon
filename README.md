@@ -23,7 +23,7 @@ time.
 
 ## Model training
 
-Models are trained from a single plaintext files with one sentence per line.
+Models are trained from plaintext files with one sentence per line.
 Symbols – e.g., words or characters – are delimited by blanks. You need to specify two
 parallel files: one in the source language, and one in the target language.
 
