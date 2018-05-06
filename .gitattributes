@@ -1,1 +1,1 @@
-test/*.txt linguist-vendored=true
+test/* linguist-vendored=true
