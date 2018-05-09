@@ -33,7 +33,8 @@ SCORE_MAX_LEN = 1000
 # TRANSLATION_MAX_LEN (only applies to translation)
 TRANSLATION_MAX_LEN = MAX_LEN * 2
 
-
+# maximum number of different words, every additional
+# word is treated as UNK
 SOURCE_VOCAB_SIZE = 50000
 TARGET_VOCAB_SIZE = 50000
 

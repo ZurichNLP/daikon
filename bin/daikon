@@ -7,6 +7,7 @@
 
 import os
 import sys
+import time
 import logging
 import argparse
 
@@ -95,29 +96,40 @@ def action_translate(args):
         output_file_handle = sys.stdout
 
     from daikon.translate import translate_file
+
+    tic = time.time()
+
     translate_file(load_from=args.load_from, input_file_handle=input_file_handle, output_file_handle=output_file_handle)
+
+    taken = time.time() - tic
+    m, s = divmod(taken, 60)
+    h, m = divmod(m, 60)
+
+    logger.info("Finished. Overall translation time: %d:%02d:%02d" % (h, m, s))
 
 
 def _set_up_logging(args):
     """
     Set up logging to file and standard error.
     """
-    # log to logfile
-    logfile = os.path.join(args.log_to, C.TRAINING_LOG_FILENAME)
-    logging.basicConfig(level=logging.DEBUG,
-                        format='%(asctime)s - %(levelname)s - %(message)s',
-                        filename=logfile,
-                        filemode="w")
+    format_ = '%(asctime)s - %(levelname)s - %(message)s'
+    logger = logging.getLogger()
 
-    # determine log level
+    # determine console log level
     log_level = logging.WARNING if args.quiet else logging.DEBUG
 
     # log to STDERR
-    console = logging.StreamHandler()
-    console.setLevel(log_level)
-    formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s')
-    console.setFormatter(formatter)
-    logging.getLogger("").addHandler(console)
+    logging.basicConfig(level=log_level,
+                        format=format_,)
+
+    # log to logfile
+    if args.action == 'train':
+        logfile = os.path.join(args.log_to, C.TRAINING_LOG_FILENAME)
+        file_handler = logging.FileHandler(filename=logfile, mode="w")
+        file_handler.setLevel(logging.DEBUG)
+        formatter = logging.Formatter(format_)
+        file_handler.setFormatter(formatter)
+        logger.addHandler(file_handler)
 
     logger.info(args)
 
