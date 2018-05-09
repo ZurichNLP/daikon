@@ -31,6 +31,9 @@ class Vocabulary:
             max_size: the maximum number of words (only keep most frequent n
                       words)
         """
+        self.filename = filename
+        self.max_size = max_size
+
         words = reader.read_words(filename)
         word_counts = Counter(words)
         sorted_words = [word for word, _ in word_counts.most_common() if word != C.UNK]
@@ -48,6 +51,9 @@ class Vocabulary:
             for word, i in json.load(f).items():
                 self._id[word] = i
                 self._word[i] = word
+
+    def __repr__(self):
+        return "Vocabulary(filename=%s, size=%d, max_size=%d)" % (self.filename, self.size, self.max_size)
 
     @property
     def size(self):

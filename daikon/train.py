@@ -53,7 +53,8 @@ def train(source_data: str,
           target_data: str,
           epochs: int,
           batch_size: int,
-          vocab_max_size: int,
+          source_vocab_max_size: int,
+          target_vocab_max_size: int,
           save_to: str,
           log_to: str,
           sample_after_epoch: bool,
@@ -66,8 +67,11 @@ def train(source_data: str,
             os.makedirs(folder)
 
     # create vocabulary to map words to ids, for source and target
-    source_vocab = create_vocab(source_data, vocab_max_size, save_to, C.SOURCE_VOCAB_FILENAME)
-    target_vocab = create_vocab(target_data, vocab_max_size, save_to, C.TARGET_VOCAB_FILENAME)
+    source_vocab = create_vocab(source_data, source_vocab_max_size, save_to, C.SOURCE_VOCAB_FILENAME)
+    target_vocab = create_vocab(target_data, target_vocab_max_size, save_to, C.TARGET_VOCAB_FILENAME)
+
+    logger.info("Source vocabulary: %s", source_vocab)
+    logger.info("Target vocabulary: %s", target_vocab)
 
     # convert training data to list of word ids
     logger.info("Reading training data.")

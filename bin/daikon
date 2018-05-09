@@ -30,7 +30,9 @@ def get_argument_parser():
     train.add_argument('-e', '--epochs', type=int, default=10,
                        help='the number of training epochs.')
     train.add_argument('-b', '--batch_size', type=int, default=20)
-    train.add_argument('-v', '--vocab_max_size', type=int, default=10000,
+    train.add_argument('--source_vocab_max_size', type=int, default=C.SOURCE_VOCAB_SIZE,
+                       help='Only keep n most frequent words; treat others as <unk>.')
+    train.add_argument('--target_vocab_max_size', type=int, default=C.TARGET_VOCAB_SIZE,
                        help='Only keep n most frequent words; treat others as <unk>.')
     train.add_argument('-m', '--save_to', default='model',
                        help='the folder to store model files.')
