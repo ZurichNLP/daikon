@@ -7,6 +7,7 @@
 
 import os
 import time
+import math
 import logging
 import random
 import threading
@@ -66,6 +67,8 @@ def train(source_data: str,
         if not os.path.exists(folder):
             os.makedirs(folder)
 
+    logger.info("Creating vocabularies.")
+
     # create vocabulary to map words to ids, for source and target
     source_vocab = create_vocab(source_data, source_vocab_max_size, save_to, C.SOURCE_VOCAB_FILENAME)
     target_vocab = create_vocab(target_data, target_vocab_max_size, save_to, C.TARGET_VOCAB_FILENAME)
@@ -93,6 +96,7 @@ def train(source_data: str,
 
         logger.info("Starting training.")
         tic = time.time()
+        num_batches = math.floor(len(reader_ids) / batch_size)
 
         # iterate over training data `epochs` times
         for epoch in range(1, epochs + 1):
@@ -112,9 +116,9 @@ def train(source_data: str,
                 summary_writer.add_summary(s, total_iter)
                 total_loss += l
                 total_iter += 1
-                if total_iter % C.LOGGING_INTERVAL == 0:
+                if total_iter % C.LOGGING_INTERVAL == 0 or total_iter == num_batches:
                     iter_taken = time.time() - iter_tic
-                    logger.debug("Epoch=%s, iteration=%s, samples/second=%.2f", epoch, total_iter, batch_size * C.LOGGING_INTERVAL / float(iter_taken))
+                    logger.debug("Epoch=%s, iteration=%s/%s, samples/second=%.2f", epoch, total_iter, num_batches, batch_size * C.LOGGING_INTERVAL / float(iter_taken))
                     iter_tic = time.time()
             perplexity = np.exp(total_loss / total_iter)
             logger.info("Perplexity on training data after epoch %s: %.2f", epoch, perplexity)
