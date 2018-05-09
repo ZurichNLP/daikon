@@ -5,9 +5,14 @@
 # Samuel Läubli <laeubli@cl.uzh.ch>
 # Mathias Müller <mmueller@cl.uzh.ch>
 
+import os
 import sys
 import logging
 import argparse
+
+from daikon import constants as C
+
+logger = logging.getLogger(__name__)
 
 
 def get_argument_parser():
@@ -91,14 +96,38 @@ def action_translate(args):
     translate_file(load_from=args.load_from, input_file_handle=input_file_handle, output_file_handle=output_file_handle)
 
 
+def _set_up_logging(args):
+    """
+    Set up logging to file and standard error.
+    """
+    # log to logfile
+    logfile = os.path.join(args.log_to, C.TRAINING_LOG_FILENAME)
+    logging.basicConfig(level=logging.DEBUG,
+                        format='%(asctime)s - %(levelname)s - %(message)s',
+                        filename=logfile,
+                        filemode="w")
+
+    # determine log level
+    log_level = logging.WARNING if args.quiet else logging.DEBUG
+
+    # log to STDERR
+    console = logging.StreamHandler()
+    console.setLevel(log_level)
+    formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s')
+    console.setFormatter(formatter)
+    logging.getLogger("").addHandler(console)
+
+    logger.info(args)
+
+
 def main():
     parser = get_argument_parser()
     if len(sys.argv) <= 1:
         parser.print_help()
     args = parser.parse_args()
-    # log level
-    log_level = logging.WARNING if args.quiet else logging.DEBUG
-    logging.basicConfig(level=log_level, format='%(asctime)s - %(levelname)s - %(message)s')
+
+    _set_up_logging(args)
+
     # delegate
     if args.action == 'train':
         action_train(args)

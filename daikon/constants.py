@@ -21,6 +21,7 @@ UNK = '<unk>'
 MODEL_FILENAME = 'model'
 SOURCE_VOCAB_FILENAME = 'vocab.source.json'
 TARGET_VOCAB_FILENAME = 'vocab.target.json'
+TRAINING_LOG_FILENAME = 'training.log'
 
 # max number of tokens per sequence, sentences that are
 # longer than that are discarded for training
