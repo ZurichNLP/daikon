@@ -21,6 +21,7 @@ UNK = '<unk>'
 MODEL_FILENAME = 'model'
 SOURCE_VOCAB_FILENAME = 'vocab.source.json'
 TARGET_VOCAB_FILENAME = 'vocab.target.json'
+TRAINING_LOG_FILENAME = 'training.log'
 
 # max number of tokens per sequence, sentences that are
 # longer than that are discarded for training
@@ -32,7 +33,8 @@ SCORE_MAX_LEN = 1000
 # TRANSLATION_MAX_LEN (only applies to translation)
 TRANSLATION_MAX_LEN = MAX_LEN * 2
 
-
+# maximum number of different words, every additional
+# word is treated as UNK
 SOURCE_VOCAB_SIZE = 50000
 TARGET_VOCAB_SIZE = 50000
 
@@ -41,3 +43,6 @@ EMBEDDING_SIZE = 512
 HIDDEN_SIZE = 1024
 
 LEARNING_RATE = 0.0001
+
+# log training progress every X batches
+LOGGING_INTERVAL = 1000

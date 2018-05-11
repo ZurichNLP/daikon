@@ -10,6 +10,17 @@ import tensorflow as tf
 from daikon import constants as C
 
 
+def compute_lengths(sequences):
+    """
+    This solution is similar to:
+    https://danijar.com/variable-sequence-lengths-in-tensorflow/
+    """
+    used = tf.sign(tf.abs(sequences))
+    lengths = tf.reduce_sum(used, reduction_indices=1)
+    lengths = tf.cast(lengths, tf.int32)
+    return lengths
+
+
 def define_computation_graph(source_vocab_size: int, target_vocab_size: int, batch_size: int):
 
     tf.reset_default_graph()
@@ -51,7 +62,12 @@ def define_computation_graph(source_vocab_size: int, target_vocab_size: int, bat
         stepwise_cross_entropy = tf.nn.softmax_cross_entropy_with_logits_v2(
             labels=one_hot_labels,
             logits=decoder_logits)
-        loss = tf.reduce_mean(stepwise_cross_entropy)
+
+        # mask padded positions
+        target_lengths = compute_lengths(decoder_targets)
+        target_weights = tf.sequence_mask(lengths=target_lengths, maxlen=None, dtype=decoder_logits.dtype)
+        weighted_cross_entropy = stepwise_cross_entropy * target_weights
+        loss = tf.reduce_mean(weighted_cross_entropy)
 
     with tf.variable_scope('Optimizer'):
         train_step = tf.train.AdamOptimizer(learning_rate=C.LEARNING_RATE).minimize(loss)

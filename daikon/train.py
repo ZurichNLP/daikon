@@ -6,6 +6,8 @@
 # Mathias Müller <mmueller@cl.uzh.ch>
 
 import os
+import time
+import math
 import logging
 import random
 import threading
@@ -20,6 +22,8 @@ from daikon import constants as C
 from daikon.vocab import create_vocab, Vocabulary
 from daikon.translate import translate_lines
 from daikon.compgraph import define_computation_graph
+
+logger = logging.getLogger(__name__)
 
 
 def _sample_after_epoch(reader_ids: List[reader.ReaderTuple],
@@ -37,20 +41,21 @@ def _sample_after_epoch(reader_ids: List[reader.ReaderTuple],
     output_lines = [" ".join(target_vocab.get_words(output_line)) for output_line in output_lines]
     translations = translate_lines(load_from=load_from, input_lines=input_lines, train_mode=True)
 
-    logging.debug("Sampled translations after epoch %s.", epoch)
+    logger.debug("Sampled translations after epoch %s.", epoch)
     for input_line, output_line, translation in zip(input_lines, output_lines, translations):
-        logging.debug("-" * 30)
-        logging.debug("Input:\t\t%s", input_line)
-        logging.debug("Predicted output:\t%s", translation)
-        logging.debug("Actual output:\t%s", output_line)
-    logging.debug("-" * 30)
+        logger.debug("-" * 30)
+        logger.debug("Input:\t\t%s", input_line)
+        logger.debug("Predicted output:\t%s", translation)
+        logger.debug("Actual output:\t%s", output_line)
+    logger.debug("-" * 30)
 
 
 def train(source_data: str,
           target_data: str,
           epochs: int,
           batch_size: int,
-          vocab_max_size: int,
+          source_vocab_max_size: int,
+          target_vocab_max_size: int,
           save_to: str,
           log_to: str,
           sample_after_epoch: bool,
@@ -62,15 +67,21 @@ def train(source_data: str,
         if not os.path.exists(folder):
             os.makedirs(folder)
 
+    logger.info("Creating vocabularies.")
+
     # create vocabulary to map words to ids, for source and target
-    source_vocab = create_vocab(source_data, vocab_max_size, save_to, C.SOURCE_VOCAB_FILENAME)
-    target_vocab = create_vocab(target_data, vocab_max_size, save_to, C.TARGET_VOCAB_FILENAME)
+    source_vocab = create_vocab(source_data, source_vocab_max_size, save_to, C.SOURCE_VOCAB_FILENAME)
+    target_vocab = create_vocab(target_data, target_vocab_max_size, save_to, C.TARGET_VOCAB_FILENAME)
+
+    logger.info("Source vocabulary: %s", source_vocab)
+    logger.info("Target vocabulary: %s", target_vocab)
 
     # convert training data to list of word ids
+    logger.info("Reading training data.")
     reader_ids = list(reader.read_parallel(source_data, target_data, source_vocab, target_vocab, C.MAX_LEN))
 
     # define computation graph
-    logging.info("Building computation graph.")
+    logger.info("Building computation graph.")
 
     graph_components = define_computation_graph(source_vocab.size, target_vocab.size, batch_size)
     encoder_inputs, decoder_targets, decoder_inputs, loss, train_step, decoder_logits, summary = graph_components
@@ -83,12 +94,17 @@ def train(source_data: str,
         # write logs (@tensorboard)
         summary_writer = tf.summary.FileWriter(log_to, graph=tf.get_default_graph())
 
-        logging.info("Starting training.")
+        logger.info("Starting training.")
+        tic = time.time()
+        num_batches = math.floor(len(reader_ids) / batch_size)
 
         # iterate over training data `epochs` times
         for epoch in range(1, epochs + 1):
             total_loss = 0.0
             total_iter = 0
+
+            iter_tic = time.time()
+
             for x, y, z in reader.iterate(reader_ids, batch_size, shuffle=True):
 
                 feed_dict = {encoder_inputs: x,
@@ -100,10 +116,12 @@ def train(source_data: str,
                 summary_writer.add_summary(s, total_iter)
                 total_loss += l
                 total_iter += 1
-                if total_iter % 100 == 0:
-                    logging.debug("Epoch=%s, iteration=%s", epoch, total_iter)
+                if total_iter % C.LOGGING_INTERVAL == 0 or total_iter == num_batches:
+                    iter_taken = time.time() - iter_tic
+                    logger.debug("Epoch=%s, iteration=%s/%s, samples/second=%.2f", epoch, total_iter, num_batches, batch_size * C.LOGGING_INTERVAL / float(iter_taken))
+                    iter_tic = time.time()
             perplexity = np.exp(total_loss / total_iter)
-            logging.info("Perplexity on training data after epoch %s: %.2f", epoch, perplexity)
+            logger.info("Perplexity on training data after epoch %s: %.2f", epoch, perplexity)
             saver.save(session, os.path.join(save_to, C.MODEL_FILENAME))
 
             if sample_after_epoch:
@@ -111,4 +129,8 @@ def train(source_data: str,
                 thread = threading.Thread(target=_sample_after_epoch, args=[reader_ids, source_vocab, target_vocab, save_to, epoch])
                 thread.start()
 
-        logging.info("Training finished.")
+        taken = time.time() - tic
+        m, s = divmod(taken, 60)
+        h, m = divmod(m, 60)
+
+        logger.info("Training finished. Overall time taken to train: %d:%02d:%02d" % (h, m, s))

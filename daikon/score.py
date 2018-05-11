@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 
 import os
-import logging
 
 import numpy as np
 import tensorflow as tf
