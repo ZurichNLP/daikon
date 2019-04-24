@@ -61,7 +61,7 @@ def get_argument_parser():
     score = subparsers.add_parser('score', help='Use a trained model to score parallel text.')
     score.add_argument('-m', '--load_from', default='model',
                        help='the folder to load model and vocabulary files from. (default: %(default)s)')
-    score.add_argument('-a', '--corpus_average', default=False, action="store_true", default=False,
+    score.add_argument('-a', '--corpus_average', default=False, action="store_true",
                        help='Output one single score that is a corpus-level average. (default: %(default)s)')
     score.add_argument('-n', '--normalize', default=False, action="store_true",
                        help='Normalize scores by target sequence length. (default: %(default)s)')
