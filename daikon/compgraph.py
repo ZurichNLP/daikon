@@ -39,7 +39,7 @@ def define_computation_graph(source_vocab_size: int, target_vocab_size: int, bat
         decoder_inputs_embedded = tf.nn.embedding_lookup(target_embedding, decoder_inputs)
 
     with tf.variable_scope("Encoder"):
-        encoder_cell = tf.contrib.rnn.LSTMCell(C.HIDDEN_SIZE)
+        encoder_cell = tf.contrib.rnn.GRUCell(C.HIDDEN_SIZE)
         initial_state = encoder_cell.zero_state(batch_size, tf.float32)
 
         encoder_outputs, encoder_final_state = tf.nn.dynamic_rnn(encoder_cell,
@@ -48,7 +48,7 @@ def define_computation_graph(source_vocab_size: int, target_vocab_size: int, bat
                                                                  dtype=tf.float32)
 
     with tf.variable_scope("Decoder"):
-        decoder_cell = tf.contrib.rnn.LSTMCell(C.HIDDEN_SIZE)
+        decoder_cell = tf.contrib.rnn.GRUCell(C.HIDDEN_SIZE)
         decoder_outputs, decoder_final_state = tf.nn.dynamic_rnn(decoder_cell,
                                                                  decoder_inputs_embedded,
                                                                  initial_state=encoder_final_state,
