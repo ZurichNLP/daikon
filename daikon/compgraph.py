@@ -70,7 +70,7 @@ def define_computation_graph(source_vocab_size: int, target_vocab_size: int, bat
                                                                 inputs=coder_inputs_embedded,initial_state=decoder_outputs,
                                                                  dtype=tf.float32)
 
-with tf.variable_scope("Additional_Coder2"):
+    with tf.variable_scope("Additional_Coder2"):
         coder_cell2 = tf.contrib.rnn.GRUCell(C.HIDDEN_SIZE)
         coder_cell2 = tf.contrib.rnn.DropoutWrapper(decoder_cell,output_keep_prob=0.2)
 
