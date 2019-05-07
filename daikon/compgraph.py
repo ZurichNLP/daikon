@@ -8,11 +8,6 @@
 import tensorflow as tf
 
 from daikon import constants as C
-try:
-    from tensorflow.python.ops.rnn import rnn_cell_impl as _rnn_cell, dynamic_rnn as _drnn, static_rnn as _rnn, static_bidirectional_rnn as _brnn
-    from tensorflow.python.ops.rnn import rnn_cell_impl as _rnn_cell, dynamic_rnn as _drnn, static_rnn as _rnn, bidirectional_dynamic_rnn as _brnn
-except:
-    pass
 def compute_lengths(sequences):
     """
     This solution is similar to:
@@ -42,40 +37,49 @@ def define_computation_graph(source_vocab_size: int, target_vocab_size: int, bat
         decoder_inputs_embedded = tf.nn.embedding_lookup(target_embedding, decoder_inputs)
 
     with tf.variable_scope("Encoder"):
-        fw_encoder_cell = tf.contrib.rnn.GRUCell(C.HIDDEN_SIZE)
-        bw_encoder_cell = tf.contrib.rnn.GRUCell(C.HIDDEN_SIZE)
+        fw_encoder_cell = tf.contrib.rnn.GRUCell(C.HIDDEN_SIZE/2)
+        bw_encoder_cell = tf.contrib.rnn.GRUCell(C.HIDDEN_SIZE/2)
 
-        fw_encoder_cell=tf.contrib.rnn.DropoutWrapper(fw_encoder_cell,output_keep_prob=0.2)
-        bw_encoder_cell=tf.contrib.rnn.DropoutWrapper(fw_encoder_cell,output_keep_prob=0.2)
+        #fw_encoder_cell=tf.contrib.rnn.DropoutWrapper(fw_encoder_cell,output_keep_prob=0.2)
+        #bw_encoder_cell=tf.contrib.rnn.DropoutWrapper(fw_encoder_cell,output_keep_prob=0.2)
 
         fw_initial_state = fw_encoder_cell.zero_state(batch_size, tf.float32)
         bw_initial_state = bw_encoder_cell.zero_state(batch_size, tf.float32)
-        encoder_outputs, encoder_final_state = _brnn(cell_fw=fw_encoder_cell,cell_bw=bw_encoder_cell,
+        (encoder_output_fw,encoder_output_bw), (encoder_final_state_fw, encoder_final_state_bw) = tf.nn.bidirectional_dynamic_rnn(cell_fw=fw_encoder_cell,cell_bw=bw_encoder_cell,
                                                                  inputs=encoder_inputs_embedded,
-                                                                 initial_state_fw=fw_initial_state,initial_state_bw=bw_initial_state,
                                                                  dtype=tf.float32)
+        encoder_outputs = tf.concat([encoder_output_fw, encoder_output_bw] ,2)
+        #encoder_final_state = tf.contrib.rnn.LSTMStateTuple(c=tf.concat([encoder_final_state_fw.c, encoder_final_state_bw.c], 1), h=tf.concat([encoder_final_state_fw.h, encoder_final_state_bw.h], 1))
+        encoder_final_state = tf.concat([encoder_final_state_fw, encoder_final_state_bw], 1)
+        print(encoder_final_state)
 
     with tf.variable_scope("Decoder"):
         decoder_cell = tf.contrib.rnn.GRUCell(C.HIDDEN_SIZE)
         decoder_cell = tf.contrib.rnn.DropoutWrapper(decoder_cell,output_keep_prob=0.2)
         decoder_outputs, decoder_final_state = tf.nn.dynamic_rnn(cell=decoder_cell,
-                                                                 inputs=decoder_inputs_embedded,initial_state=encoder_outputs,
+                                                                 inputs=decoder_inputs_embedded,initial_state=encoder_final_state,
                                                                  dtype=tf.float32)
+        print('decoder outputs', decoder_outputs)
+        print('decoder state', decoder_final_state)
 
     with tf.variable_scope("Additional_Coder"):
-        coder_cell = tf.contrib.rnn.GRUCell(C.HIDDEN_SIZE)
-        coder_cell = tf.contrib.rnn.DropoutWrapper(decoder_cell,output_keep_prob=0.2)
+        coder_cell = tf.contrib.rnn.LSTMCell(C.HIDDEN_SIZE)
+        coder_cell = tf.contrib.rnn.DropoutWrapper(coder_cell,output_keep_prob=0.2)
+        coder_initial_state = coder_cell.zero_state(batch_size, tf.float32)
 
         coder_outputs, coder_final_state = tf.nn.dynamic_rnn(cell=coder_cell,
-                                                                inputs=coder_inputs_embedded,initial_state=decoder_outputs,
+                                                                initial_state=coder_initial_state,
+                                                                inputs=decoder_outputs,
                                                                  dtype=tf.float32)
+        print('coder outputs', coder_outputs)
+        print('coder state', coder_final_state)
 
     with tf.variable_scope("Additional_Coder2"):
-        coder_cell2 = tf.contrib.rnn.GRUCell(C.HIDDEN_SIZE)
-        coder_cell2 = tf.contrib.rnn.DropoutWrapper(decoder_cell,output_keep_prob=0.2)
+        coder_cell2 = tf.contrib.rnn.LSTMCell(C.HIDDEN_SIZE)
+        coder_cell2 = tf.contrib.rnn.DropoutWrapper(coder_cell2,output_keep_prob=0.2)
 
         coder_outputs2, decoder_final_state2 = tf.nn.dynamic_rnn(cell=coder_cell2,
-                                                                inputs=coder_inputs2_embedded,initial_state=coder_outputs,
+                                                                inputs=coder_outputs,initial_state=coder_final_state,
                                                                  dtype=tf.float32)
 
     with tf.variable_scope("Logits"):
