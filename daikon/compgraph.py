@@ -42,19 +42,24 @@ def define_computation_graph(source_vocab_size: int, target_vocab_size: int, bat
         decoder_inputs_embedded = tf.nn.embedding_lookup(target_embedding, decoder_inputs)
 
     with tf.variable_scope("Encoder"):
-        fw_encoder_cell = tf.contrib.rnn.LSTMCell(C.HIDDEN_SIZE/2)
-        bw_encoder_cell = tf.contrib.rnn.LSTMCell(C.HIDDEN_SIZE/2)
+        fw_encoder_cell = tf.contrib.rnn.GRUCell(C.HIDDEN_SIZE/2)
+        bw_encoder_cell = tf.contrib.rnn.GRUCell(C.HIDDEN_SIZE/2)
+
+        fw_encoder_cell=tf.contrib.rnn.DropoutWrapper(fw_encoder_cell,output_keep_prob=0.2)
+        bw_encoder_cell=tf.contrib.rnn.DropoutWrapper(fw_encoder_cell,output_keep_prob=0.2)
+
         fw_initial_state = fw_encoder_cell.zero_state(batch_size, tf.float32)
         bw_initial_state = bw_encoder_cell.zero_state(batch_size, tf.float32)
         encoder_outputs, encoder_final_state = _brnn(cell_fw=fw_encoder_cell,cell_bw=bw_encoder_cell,
                                                                  inputs=encoder_inputs_embedded,
                                                                  initial_state_fw=fw_initial_state,initial_state_bw=bw_initial_state,
                                                                  dtype=tf.float32)
- 
+
     with tf.variable_scope("Decoder"):
-        fw_decoder_cell = tf.contrib.rnn.LSTMCell(C.HIDDEN_SIZE/2)
-        #bw_decoder_cell = tf.contrib.rnn.LSTMCell(C.HIDDEN_SIZE/2)
-        decoder_outputs, decoder_final_state = tf.nn.dynamic_rnn(fw_decoder_cell,
+        decoder_cell = tf.contrib.rnn.GRUCell(C.HIDDEN_SIZE)
+        decoder_cell = tf.contrib.rnn.DropoutWrapper(decoder_cell,output_keep_prob=0.2)
+
+        decoder_outputs, decoder_final_state = tf.nn.dynamic_rnn(decoder_cell,
                                                                  decoder_inputs_embedded,
                                                                  dtype=tf.float32)
 
