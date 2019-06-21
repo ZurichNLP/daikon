@@ -60,12 +60,7 @@ def train(source_data: str,
           log_to: str,
           sample_after_epoch: bool,
           **kwargs) -> None:
-    """Trains a language model. See argument description in `bin/romanesco`."""
-
-    # create folders for model and logs if they don't exist yet
-    for folder in [save_to, log_to]:
-        if not os.path.exists(folder):
-            os.makedirs(folder)
+    """Trains a language model. See argument description in `bin/daikon`."""
 
     logger.info("Creating vocabularies.")
 
