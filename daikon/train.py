@@ -62,11 +62,6 @@ def train(source_data: str,
           **kwargs) -> None:
     """Trains a language model. See argument description in `bin/romanesco`."""
 
-    # create folders for model and logs if they don't exist yet
-    for folder in [save_to, log_to]:
-        if not os.path.exists(folder):
-            os.makedirs(folder)
-
     logger.info("Creating vocabularies.")
 
     # create vocabulary to map words to ids, for source and target
