@@ -33,7 +33,7 @@ def define_computation_graph(source_vocab_size: int, target_vocab_size: int, bat
 
     with tf.variable_scope("Embeddings"):
         source_embedding = tf.get_variable('source_embedding', [source_vocab_size, C.EMBEDDING_SIZE])
-        target_embedding = tf.get_variable('target_embedding', [source_vocab_size, C.EMBEDDING_SIZE])
+        target_embedding = tf.get_variable('target_embedding', [target_vocab_size, C.EMBEDDING_SIZE])
 
         encoder_inputs_embedded = tf.nn.embedding_lookup(source_embedding, encoder_inputs)
         decoder_inputs_embedded = tf.nn.embedding_lookup(target_embedding, decoder_inputs)
