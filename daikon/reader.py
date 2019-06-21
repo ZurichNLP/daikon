@@ -55,7 +55,7 @@ def read(filename: str, vocab) -> Iterator[List[int]]:
     """
     lines = read_lines(filename)
     for line in lines:
-        yield [vocab.get_id(word) for word in line]
+        yield vocab.get_ids(line)
 
 
 def read_parallel(source_filename: str,
@@ -116,8 +116,7 @@ def pad_sequence(word_ids: List[int], pad_id: int, max_length: int) -> List[int]
     return padded_sequence
 
 
-NestedIds = List[List[int]]
-ReaderTuple = Tuple[NestedIds, NestedIds]
+ReaderTuple = Tuple[List[int], List[int]]
 
 
 def iterate(reader_ids: List[ReaderTuple], batch_size: int, shuffle: bool = True):

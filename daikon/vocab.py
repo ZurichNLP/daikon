@@ -74,7 +74,7 @@ class Vocabulary:
     def get_words(self, ids: List[int]):
         return [self.get_word(id) for id in ids]
 
-    def save(self, filepath):
+    def save(self, filepath: str):
         """Writes this vocabulary to a file in JSON format."""
         with open(filepath, 'w') as f:
             json.dump(self._id, f, indent=4)
