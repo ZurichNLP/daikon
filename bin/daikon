@@ -48,13 +48,13 @@ def get_argument_parser():
                        help='Sample translations from the model after each epoch. (default: %(default)s)')
 
     # translate
-    sample = subparsers.add_parser('translate', help='Use a trained model to translate new text.')
-    sample.add_argument('-m', '--load_from', default='model',
+    translate = subparsers.add_parser('translate', help='Use a trained model to translate new text.')
+    translate.add_argument('-m', '--load_from', default='model',
                         help='the folder to load model and vocabulary files from. (default: %(default)s)')
-    sample.add_argument('-i', '--input', type=str, required=False, default=None,
+    translate.add_argument('-i', '--input', type=str, required=False, default=None,
                         help='File that should be translated, one sentence per line.' +
                         ' If omitted, daikon assumes input from STDIN.')
-    sample.add_argument('-o', '--output', type=str, required=False, default=None,
+    translate.add_argument('-o', '--output', type=str, required=False, default=None,
                         help='File translations should be written to. If omitted, daikon writes to STDOUT.')
 
     # score

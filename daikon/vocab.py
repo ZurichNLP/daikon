@@ -74,10 +74,6 @@ class Vocabulary:
     def get_words(self, ids: List[int]):
         return [self.get_word(id) for id in ids]
 
-    def get_random_id(self):
-        """Returns the id of a random word."""
-        return random.choice(list(self._id.values()))
-
     def save(self, filepath):
         """Writes this vocabulary to a file in JSON format."""
         with open(filepath, 'w') as f:

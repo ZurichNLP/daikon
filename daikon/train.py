@@ -60,7 +60,7 @@ def train(source_data: str,
           log_to: str,
           sample_after_epoch: bool,
           **kwargs) -> None:
-    """Trains a language model. See argument description in `bin/romanesco`."""
+    """Trains a language model. See argument description in `bin/daikon`."""
 
     logger.info("Creating vocabularies.")
 
